@@ -85,17 +85,24 @@ func (o condOr) Or(conds ...Cond) Cond {
 	return append(o, conds...)
 }
 
-type Expr string
-
-func (expr Expr) ToSQL() (string, []interface{}, error) {
-	return string(expr), nil, nil
+type expr struct {
+	sql  string
+	args []interface{}
 }
 
-func (expr Expr) And(conds ...Cond) Cond {
+func Expr(sql string, args ...interface{}) Cond {
+	return expr{sql, args}
+}
+
+func (expr expr) ToSQL() (string, []interface{}, error) {
+	return expr.sql, expr.args, nil
+}
+
+func (expr expr) And(conds ...Cond) Cond {
 	return append(condAnd{expr}, conds...)
 }
 
-func (expr Expr) Or(conds ...Cond) Cond {
+func (expr expr) Or(conds ...Cond) Cond {
 	return append(condOr{expr}, conds...)
 }
 
@@ -131,6 +138,14 @@ func (neq Neq) ToSQL() (string, []interface{}, error) {
 	return strings.Join(conds, " AND "), args, nil
 }
 
+func (neq Neq) And(conds ...Cond) Cond {
+	return append(condAnd{neq}, conds...)
+}
+
+func (neq Neq) Or(conds ...Cond) Cond {
+	return append(condOr{neq}, conds...)
+}
+
 type Lt map[string]interface{}
 
 func (lt Lt) ToSQL() (string, []interface{}, error) {
@@ -143,6 +158,34 @@ func (lt Lt) ToSQL() (string, []interface{}, error) {
 	return strings.Join(conds, " AND "), args, nil
 }
 
+func (lt Lt) And(conds ...Cond) Cond {
+	return append(condAnd{lt}, conds...)
+}
+
+func (lt Lt) Or(conds ...Cond) Cond {
+	return append(condOr{lt}, conds...)
+}
+
+type Lte map[string]interface{}
+
+func (lte Lte) ToSQL() (string, []interface{}, error) {
+	var conds []string
+	var args = make([]interface{}, 0, len(lte))
+	for k, v := range lte {
+		conds = append(conds, k+"<=?")
+		args = append(args, v)
+	}
+	return strings.Join(conds, " AND "), args, nil
+}
+
+func (lte Lte) And(conds ...Cond) Cond {
+	return append(condAnd{lte}, conds...)
+}
+
+func (lte Lte) Or(conds ...Cond) Cond {
+	return append(condOr{lte}, conds...)
+}
+
 type Gt map[string]interface{}
 
 func (gt Gt) ToSQL() (string, []interface{}, error) {
@@ -153,6 +196,52 @@ func (gt Gt) ToSQL() (string, []interface{}, error) {
 		args = append(args, v)
 	}
 	return strings.Join(conds, " AND "), args, nil
+}
+
+func (gt Gt) And(conds ...Cond) Cond {
+	return append(condAnd{gt}, conds...)
+}
+
+func (gt Gt) Or(conds ...Cond) Cond {
+	return append(condOr{gt}, conds...)
+}
+
+type Gte map[string]interface{}
+
+func (gte Gte) ToSQL() (string, []interface{}, error) {
+	var conds []string
+	var args = make([]interface{}, 0, len(gte))
+	for k, v := range gte {
+		conds = append(conds, k+">=?")
+		args = append(args, v)
+	}
+	return strings.Join(conds, " AND "), args, nil
+}
+
+func (gte Gte) And(conds ...Cond) Cond {
+	return append(condAnd{gte}, conds...)
+}
+
+func (gte Gte) Or(conds ...Cond) Cond {
+	return append(condOr{gte}, conds...)
+}
+
+type Between struct {
+	col     string
+	lessVal interface{}
+	moreVal interface{}
+}
+
+func (between Between) ToSQL() (string, []interface{}, error) {
+	return between.col + " BETWEEN ? AND ?", []interface{}{between.lessVal, between.moreVal}, nil
+}
+
+func (between Between) And(conds ...Cond) Cond {
+	return append(condAnd{between}, conds...)
+}
+
+func (between Between) Or(conds ...Cond) Cond {
+	return append(condOr{between}, conds...)
 }
 
 type condIn struct {
