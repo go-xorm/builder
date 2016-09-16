@@ -1,12 +1,48 @@
 package builder
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
+	"io"
 	"strings"
 )
 
+type Writer interface {
+	io.Writer
+	Append(...interface{})
+}
+
+type stringWriter struct {
+	writer *bytes.Buffer
+	buffer []byte
+	args   []interface{}
+}
+
+func NewWriter() *stringWriter {
+	w := &stringWriter{}
+	w.writer = bytes.NewBuffer(w.buffer)
+	return w
+}
+
+func (s *stringWriter) Write(buf []byte) (int, error) {
+	return s.writer.Write(buf)
+}
+
+func (s *stringWriter) Append(args ...interface{}) {
+	s.args = append(s.args, args...)
+}
+
+func ToSQL(cond Cond) (string, []interface{}, error) {
+	w := NewWriter()
+	if err := cond.WriteTo(w); err != nil {
+		return "", nil, err
+	}
+	return w.writer.String(), w.args, nil
+}
+
 type Cond interface {
-	ToSQL() (string, []interface{}, error)
+	WriteTo(Writer) error
 	And(...Cond) Cond
 	Or(...Cond) Cond
 }
@@ -17,27 +53,27 @@ func And(conds ...Cond) Cond {
 	return condAnd(conds)
 }
 
-func (and condAnd) ToSQL() (string, []interface{}, error) {
-	var sqls = make([]string, 0, len(and))
-	var args = make([]interface{}, 0, 2*len(and))
+func (and condAnd) WriteTo(w Writer) error {
+	for i, cond := range and {
+		if _, ok := cond.(condOr); ok {
+			fmt.Fprint(w, "(")
+		}
 
-	for _, cond := range and {
-		sql, args1, err := cond.ToSQL()
+		err := cond.WriteTo(w)
 		if err != nil {
-			return "", nil, err
+			return err
 		}
 
-		switch cond.(type) {
-		case condOr:
-			sqls = append(sqls, "("+sql+")")
-		default:
-			sqls = append(sqls, sql)
+		if _, ok := cond.(condOr); ok {
+			fmt.Fprint(w, ")")
 		}
 
-		args = append(args, args1...)
+		if i != len(and)-1 {
+			fmt.Fprint(w, " AND ")
+		}
 	}
 
-	return strings.Join(sqls, " AND "), args, nil
+	return nil
 }
 
 func (and condAnd) And(conds ...Cond) Cond {
@@ -54,27 +90,27 @@ func Or(conds ...Cond) Cond {
 	return condOr(conds)
 }
 
-func (or condOr) ToSQL() (string, []interface{}, error) {
-	var sqls = make([]string, 0, len(or))
-	var args = make([]interface{}, 0, 2*len(or))
+func (or condOr) WriteTo(w Writer) error {
+	for i, cond := range or {
+		if _, ok := cond.(condAnd); ok {
+			fmt.Fprint(w, "(")
+		}
 
-	for _, cond := range or {
-		sql, args1, err := cond.ToSQL()
+		err := cond.WriteTo(w)
 		if err != nil {
-			return "", nil, err
+			return err
 		}
 
-		switch cond.(type) {
-		case condAnd:
-			sqls = append(sqls, "("+sql+")")
-		default:
-			sqls = append(sqls, sql)
+		if _, ok := cond.(condAnd); ok {
+			fmt.Fprint(w, ")")
 		}
 
-		args = append(args, args1...)
+		if i != len(or)-1 {
+			fmt.Fprint(w, " OR ")
+		}
 	}
 
-	return strings.Join(sqls, " OR "), args, nil
+	return nil
 }
 
 func (o condOr) And(conds ...Cond) Cond {
@@ -94,8 +130,12 @@ func Expr(sql string, args ...interface{}) Cond {
 	return expr{sql, args}
 }
 
-func (expr expr) ToSQL() (string, []interface{}, error) {
-	return expr.sql, expr.args, nil
+func (expr expr) WriteTo(w Writer) error {
+	if _, err := fmt.Fprint(w, expr.sql); err != nil {
+		return err
+	}
+	w.Append(expr.args...)
+	return nil
 }
 
 func (expr expr) And(conds ...Cond) Cond {
@@ -106,16 +146,25 @@ func (expr expr) Or(conds ...Cond) Cond {
 	return append(condOr{expr}, conds...)
 }
 
+func WriteMap(w Writer, data map[string]interface{}, op string) error {
+	var args = make([]interface{}, 0, len(data))
+	var i = 0
+	for k, v := range data {
+		fmt.Fprintf(w, "%s%s?", k, op)
+		if i != len(data)-1 {
+			fmt.Fprint(w, " AND ")
+		}
+		args = append(args, v)
+		i = i + 1
+	}
+	w.Append(args...)
+	return nil
+}
+
 type Eq map[string]interface{}
 
-func (eq Eq) ToSQL() (string, []interface{}, error) {
-	var conds []string
-	var args = make([]interface{}, 0, len(eq))
-	for k, v := range eq {
-		conds = append(conds, k+"=?")
-		args = append(args, v)
-	}
-	return strings.Join(conds, " AND "), args, nil
+func (eq Eq) WriteTo(w Writer) error {
+	return WriteMap(w, eq, "=")
 }
 
 func (eq Eq) And(conds ...Cond) Cond {
@@ -128,14 +177,8 @@ func (eq Eq) Or(conds ...Cond) Cond {
 
 type Neq map[string]interface{}
 
-func (neq Neq) ToSQL() (string, []interface{}, error) {
-	var conds []string
-	var args = make([]interface{}, 0, len(neq))
-	for k, v := range neq {
-		conds = append(conds, k+"<>?")
-		args = append(args, v)
-	}
-	return strings.Join(conds, " AND "), args, nil
+func (neq Neq) WriteTo(w Writer) error {
+	return WriteMap(w, neq, "<>")
 }
 
 func (neq Neq) And(conds ...Cond) Cond {
@@ -148,14 +191,8 @@ func (neq Neq) Or(conds ...Cond) Cond {
 
 type Lt map[string]interface{}
 
-func (lt Lt) ToSQL() (string, []interface{}, error) {
-	var conds []string
-	var args = make([]interface{}, 0, len(lt))
-	for k, v := range lt {
-		conds = append(conds, k+"<?")
-		args = append(args, v)
-	}
-	return strings.Join(conds, " AND "), args, nil
+func (lt Lt) WriteTo(w Writer) error {
+	return WriteMap(w, lt, "<")
 }
 
 func (lt Lt) And(conds ...Cond) Cond {
@@ -168,14 +205,8 @@ func (lt Lt) Or(conds ...Cond) Cond {
 
 type Lte map[string]interface{}
 
-func (lte Lte) ToSQL() (string, []interface{}, error) {
-	var conds []string
-	var args = make([]interface{}, 0, len(lte))
-	for k, v := range lte {
-		conds = append(conds, k+"<=?")
-		args = append(args, v)
-	}
-	return strings.Join(conds, " AND "), args, nil
+func (lte Lte) WriteTo(w Writer) error {
+	return WriteMap(w, lte, "<=")
 }
 
 func (lte Lte) And(conds ...Cond) Cond {
@@ -188,14 +219,8 @@ func (lte Lte) Or(conds ...Cond) Cond {
 
 type Gt map[string]interface{}
 
-func (gt Gt) ToSQL() (string, []interface{}, error) {
-	var conds []string
-	var args = make([]interface{}, 0, len(gt))
-	for k, v := range gt {
-		conds = append(conds, k+">?")
-		args = append(args, v)
-	}
-	return strings.Join(conds, " AND "), args, nil
+func (gt Gt) WriteTo(w Writer) error {
+	return WriteMap(w, gt, ">")
 }
 
 func (gt Gt) And(conds ...Cond) Cond {
@@ -208,14 +233,8 @@ func (gt Gt) Or(conds ...Cond) Cond {
 
 type Gte map[string]interface{}
 
-func (gte Gte) ToSQL() (string, []interface{}, error) {
-	var conds []string
-	var args = make([]interface{}, 0, len(gte))
-	for k, v := range gte {
-		conds = append(conds, k+">=?")
-		args = append(args, v)
-	}
-	return strings.Join(conds, " AND "), args, nil
+func (gte Gte) WriteTo(w Writer) error {
+	return WriteMap(w, gte, ">=")
 }
 
 func (gte Gte) And(conds ...Cond) Cond {
@@ -232,8 +251,12 @@ type Between struct {
 	moreVal interface{}
 }
 
-func (between Between) ToSQL() (string, []interface{}, error) {
-	return between.col + " BETWEEN ? AND ?", []interface{}{between.lessVal, between.moreVal}, nil
+func (between Between) WriteTo(w Writer) error {
+	if _, err := fmt.Fprintf(w, "%s BETWEEN ? AND ?", between.col); err != nil {
+		return err
+	}
+	w.Append(between.lessVal, between.moreVal)
+	return nil
 }
 
 func (between Between) And(conds ...Cond) Cond {
@@ -253,13 +276,17 @@ func In(col string, values ...interface{}) Cond {
 	return condIn{col, values}
 }
 
-func (condIn condIn) ToSQL() (string, []interface{}, error) {
+func (condIn condIn) WriteTo(w Writer) error {
 	if len(condIn.vals) <= 0 {
-		return "", nil, errors.New("No in conditions")
+		return errors.New("No in conditions")
 	}
 
 	questionMark := strings.Repeat("?,", len(condIn.vals))
-	return condIn.col + "IN (" + questionMark[:len(questionMark)-1] + ")", condIn.vals, nil
+	if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		return err
+	}
+	w.Append(condIn.vals...)
+	return nil
 }
 
 func (condIn condIn) And(conds ...Cond) Cond {
@@ -276,13 +303,17 @@ func NotIn(col string, values ...interface{}) Cond {
 	return condNotIn{col, values}
 }
 
-func (condNotIn condNotIn) ToSQL() (string, []interface{}, error) {
+func (condNotIn condNotIn) WriteTo(w Writer) error {
 	if len(condNotIn.vals) <= 0 {
-		return "", nil, errors.New("No in conditions")
+		return errors.New("No in conditions")
 	}
 
 	questionMark := strings.Repeat("?,", len(condNotIn.vals))
-	return condNotIn.col + "NOT IN (" + questionMark[:len(questionMark)-1] + ")", condNotIn.vals, nil
+	if _, err := fmt.Fprintf(w, "%s NOT IN (%s)", condNotIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		return err
+	}
+	w.Append(condNotIn.vals...)
+	return nil
 }
 
 func (condNotIn condNotIn) And(conds ...Cond) Cond {
@@ -295,8 +326,12 @@ func (condNotIn condNotIn) Or(conds ...Cond) Cond {
 
 type Like [2]string
 
-func (like Like) ToSQL() (string, []interface{}, error) {
-	return like[0] + " LIKE ?", []interface{}{"%" + like[1] + "%"}, nil
+func (like Like) WriteTo(w Writer) error {
+	if _, err := fmt.Fprintf(w, "%s LIKE ?", like[0]); err != nil {
+		return err
+	}
+	w.Append("%" + like[1] + "%")
+	return nil
 }
 
 func (like Like) And(conds ...Cond) Cond {
@@ -309,8 +344,9 @@ func (like Like) Or(conds ...Cond) Cond {
 
 type IsNull [1]string
 
-func (isNull IsNull) ToSQL() (string, []interface{}, error) {
-	return string(isNull[0]) + " IS NULL", []interface{}{}, nil
+func (isNull IsNull) WriteTo(w Writer) error {
+	_, err := fmt.Fprintf(w, "%s IS NULL", isNull[0])
+	return err
 }
 
 func (isNull IsNull) And(conds ...Cond) Cond {
@@ -323,8 +359,9 @@ func (isNull IsNull) Or(conds ...Cond) Cond {
 
 type NotNull [1]string
 
-func (notNull NotNull) ToSQL() (string, []interface{}, error) {
-	return notNull[0] + " IS NOT NULL", []interface{}{}, nil
+func (notNull NotNull) WriteTo(w Writer) error {
+	_, err := fmt.Fprintf(w, "%s IS NOT NULL", notNull[0])
+	return err
 }
 
 func (notNull NotNull) And(conds ...Cond) Cond {
@@ -337,16 +374,29 @@ func (notNull NotNull) Or(conds ...Cond) Cond {
 
 type Not [1]Cond
 
-func (not Not) ToSQL() (string, []interface{}, error) {
-	sql, args, err := not[0].ToSQL()
-	if err != nil {
-		return "", nil, err
+func (not Not) WriteTo(w Writer) error {
+	if _, err := fmt.Fprint(w, "NOT "); err != nil {
+		return err
 	}
 	switch not[0].(type) {
 	case condAnd, condOr:
-		return "NOT (" + sql + ")", args, nil
+		if _, err := fmt.Fprint(w, "("); err != nil {
+			return err
+		}
 	}
-	return " NOT " + sql, args, nil
+
+	if err := not[0].WriteTo(w); err != nil {
+		return err
+	}
+
+	switch not[0].(type) {
+	case condAnd, condOr:
+		if _, err := fmt.Fprint(w, ")"); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (not Not) And(conds ...Cond) Cond {

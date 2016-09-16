@@ -17,7 +17,7 @@ func TestBuilder1(t *testing.T) {
 	}
 
 	for _, k := range cases {
-		sql, args, err := k.cond.ToSQL()
+		sql, args, err := ToSQL(k.cond)
 		if err != nil {
 			t.Error(err)
 			return

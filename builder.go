@@ -50,12 +50,12 @@ func (b *Builder) Or(cond Cond) *Builder {
 func (b *Builder) ToSQL() (string, []interface{}, error) {
 	switch b.optype {
 	case condType:
-		return b.cond.ToSQL()
+		return ToSQL(b.cond)
 	case selectType:
 		if len(b.tableName) <= 0 {
 			return "", nil, errors.New("no table indicated")
 		}
-		sql, args, err := b.cond.ToSQL()
+		sql, args, err := ToSQL(b.cond)
 		if err != nil {
 			return "", nil, err
 		}
