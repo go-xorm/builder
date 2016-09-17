@@ -170,11 +170,11 @@ func (or condOr) WriteTo(w Writer) error {
 }
 
 func (o condOr) And(conds ...Cond) Cond {
-	return condAnd{o, And(conds...)}
+	return And(o, And(conds...))
 }
 
 func (o condOr) Or(conds ...Cond) Cond {
-	return append(o, Or(conds...))
+	return Or(o, Or(conds...))
 }
 
 type expr struct {
@@ -195,11 +195,11 @@ func (expr expr) WriteTo(w Writer) error {
 }
 
 func (expr expr) And(conds ...Cond) Cond {
-	return condAnd{expr, And(conds...)}
+	return And(expr, And(conds...))
 }
 
 func (expr expr) Or(conds ...Cond) Cond {
-	return condOr{expr, Or(conds...)}
+	return Or(expr, Or(conds...))
 }
 
 func WriteMap(w Writer, data map[string]interface{}, op string) error {
@@ -278,11 +278,11 @@ func (eq Eq) WriteTo(w Writer) error {
 }
 
 func (eq Eq) And(conds ...Cond) Cond {
-	return condAnd{eq, And(conds...)}
+	return And(eq, And(conds...))
 }
 
 func (eq Eq) Or(conds ...Cond) Cond {
-	return condOr{eq, Or(conds...)}
+	return Or(eq, Or(conds...))
 }
 
 type Neq map[string]interface{}
@@ -326,11 +326,11 @@ func (neq Neq) WriteTo(w Writer) error {
 }
 
 func (neq Neq) And(conds ...Cond) Cond {
-	return condAnd{neq, And(conds...)}
+	return And(neq, And(conds...))
 }
 
 func (neq Neq) Or(conds ...Cond) Cond {
-	return condOr{neq, Or(conds...)}
+	return Or(neq, Or(conds...))
 }
 
 type Lt map[string]interface{}
@@ -354,11 +354,11 @@ func (lte Lte) WriteTo(w Writer) error {
 }
 
 func (lte Lte) And(conds ...Cond) Cond {
-	return condAnd{lte, And(conds...)}
+	return And(lte, And(conds...))
 }
 
 func (lte Lte) Or(conds ...Cond) Cond {
-	return condOr{lte, Or(conds...)}
+	return Or(lte, Or(conds...))
 }
 
 type Gt map[string]interface{}
@@ -368,11 +368,11 @@ func (gt Gt) WriteTo(w Writer) error {
 }
 
 func (gt Gt) And(conds ...Cond) Cond {
-	return condAnd{gt, And(conds...)}
+	return And(gt, And(conds...))
 }
 
 func (gt Gt) Or(conds ...Cond) Cond {
-	return condOr{gt, Or(conds...)}
+	return Or(gt, Or(conds...))
 }
 
 type Gte map[string]interface{}
@@ -382,11 +382,11 @@ func (gte Gte) WriteTo(w Writer) error {
 }
 
 func (gte Gte) And(conds ...Cond) Cond {
-	return condAnd{gte, And(conds...)}
+	return And(gte, And(conds...))
 }
 
 func (gte Gte) Or(conds ...Cond) Cond {
-	return condOr{gte, Or(conds...)}
+	return Or(gte, Or(conds...))
 }
 
 type Between struct {
@@ -404,11 +404,11 @@ func (between Between) WriteTo(w Writer) error {
 }
 
 func (between Between) And(conds ...Cond) Cond {
-	return condAnd{between, And(conds...)}
+	return And(between, And(conds...))
 }
 
 func (between Between) Or(conds ...Cond) Cond {
-	return condOr{between, Or(conds...)}
+	return Or(between, Or(conds...))
 }
 
 type condIn struct {
@@ -502,11 +502,11 @@ func (condIn condIn) WriteTo(w Writer) error {
 }
 
 func (condIn condIn) And(conds ...Cond) Cond {
-	return condAnd{condIn, And(conds...)}
+	return And(condIn, And(conds...))
 }
 
 func (condIn condIn) Or(conds ...Cond) Cond {
-	return condOr{condIn, Or(conds...)}
+	return Or(condIn, Or(conds...))
 }
 
 type condNotIn condIn
@@ -597,11 +597,11 @@ func (condNotIn condNotIn) WriteTo(w Writer) error {
 }
 
 func (condNotIn condNotIn) And(conds ...Cond) Cond {
-	return condAnd{condNotIn, And(conds...)}
+	return And(condNotIn, And(conds...))
 }
 
 func (condNotIn condNotIn) Or(conds ...Cond) Cond {
-	return condOr{condNotIn, Or(conds...)}
+	return Or(condNotIn, Or(conds...))
 }
 
 type Like [2]string
@@ -615,11 +615,11 @@ func (like Like) WriteTo(w Writer) error {
 }
 
 func (like Like) And(conds ...Cond) Cond {
-	return condAnd{like, And(conds...)}
+	return And(like, And(conds...))
 }
 
 func (like Like) Or(conds ...Cond) Cond {
-	return condOr{like, Or(conds...)}
+	return Or(like, Or(conds...))
 }
 
 type IsNull [1]string
@@ -630,11 +630,11 @@ func (isNull IsNull) WriteTo(w Writer) error {
 }
 
 func (isNull IsNull) And(conds ...Cond) Cond {
-	return condAnd{isNull, And(conds...)}
+	return And(isNull, And(conds...))
 }
 
 func (isNull IsNull) Or(conds ...Cond) Cond {
-	return condOr{isNull, Or(conds...)}
+	return Or(isNull, Or(conds...))
 }
 
 type NotNull [1]string
@@ -645,11 +645,11 @@ func (notNull NotNull) WriteTo(w Writer) error {
 }
 
 func (notNull NotNull) And(conds ...Cond) Cond {
-	return condAnd{notNull, And(conds...)}
+	return And(notNull, And(conds...))
 }
 
 func (notNull NotNull) Or(conds ...Cond) Cond {
-	return condOr{notNull, Or(conds...)}
+	return Or(notNull, Or(conds...))
 }
 
 type Not [1]Cond
@@ -680,9 +680,9 @@ func (not Not) WriteTo(w Writer) error {
 }
 
 func (not Not) And(conds ...Cond) Cond {
-	return condAnd{not, And(conds...)}
+	return And(not, And(conds...))
 }
 
 func (not Not) Or(conds ...Cond) Cond {
-	return condOr{not, Or(conds...)}
+	return Or(not, Or(conds...))
 }
