@@ -206,15 +206,30 @@ func WriteMap(w Writer, data map[string]interface{}, op string) error {
 	var args = make([]interface{}, 0, len(data))
 	var i = 0
 	for k, v := range data {
-		if _, err := fmt.Fprintf(w, "%s%s?", k, op); err != nil {
-			return err
+		switch v.(type) {
+		case expr:
+			if _, err := fmt.Fprintf(w, "%s%s(", k, op); err != nil {
+				return err
+			}
+
+			if err := v.(expr).WriteTo(w); err != nil {
+				return err
+			}
+
+			if _, err := fmt.Fprintf(w, ")"); err != nil {
+				return err
+			}
+		default:
+			if _, err := fmt.Fprintf(w, "%s%s?", k, op); err != nil {
+				return err
+			}
+			args = append(args, v)
 		}
 		if i != len(data)-1 {
 			if _, err := fmt.Fprint(w, " AND "); err != nil {
 				return err
 			}
 		}
-		args = append(args, v)
 		i = i + 1
 	}
 	w.Append(args...)
@@ -232,6 +247,19 @@ func (eq Eq) WriteTo(w Writer) error {
 			if err := In(k, v).WriteTo(w); err != nil {
 				return err
 			}
+		case expr:
+			if _, err := fmt.Fprintf(w, "%s=(", k); err != nil {
+				return err
+			}
+
+			if err := v.(expr).WriteTo(w); err != nil {
+				return err
+			}
+
+			if _, err := fmt.Fprintf(w, ")"); err != nil {
+				return err
+			}
+
 		default:
 			if _, err := fmt.Fprintf(w, "%s=?", k); err != nil {
 				return err
@@ -266,6 +294,18 @@ func (neq Neq) WriteTo(w Writer) error {
 		switch v.(type) {
 		case []int, []int64, []string, []int32, []int16, []int8:
 			if err := NotIn(k, v).WriteTo(w); err != nil {
+				return err
+			}
+		case expr:
+			if _, err := fmt.Fprintf(w, "%s<>(", k); err != nil {
+				return err
+			}
+
+			if err := v.(expr).WriteTo(w); err != nil {
+				return err
+			}
+
+			if _, err := fmt.Fprintf(w, ")"); err != nil {
 				return err
 			}
 		default:
@@ -440,6 +480,17 @@ func (condIn condIn) WriteTo(w Writer) error {
 		for _, val := range vals {
 			w.Append(val)
 		}
+	case expr:
+		val := condIn.vals[0].(expr)
+		if _, err := fmt.Fprintf(w, "%s IN (", condIn.col); err != nil {
+			return err
+		}
+		if err := val.WriteTo(w); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, ")"); err != nil {
+			return err
+		}
 	default:
 		questionMark := strings.Repeat("?,", len(condIn.vals))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
@@ -523,6 +574,17 @@ func (condNotIn condNotIn) WriteTo(w Writer) error {
 		}
 		for _, val := range vals {
 			w.Append(val)
+		}
+	case expr:
+		val := condNotIn.vals[0].(expr)
+		if _, err := fmt.Fprintf(w, "%s NOT IN (", condNotIn.col); err != nil {
+			return err
+		}
+		if err := val.WriteTo(w); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, ")"); err != nil {
+			return err
 		}
 	default:
 		questionMark := strings.Repeat("?,", len(condNotIn.vals))

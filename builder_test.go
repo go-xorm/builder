@@ -77,6 +77,16 @@ func TestBuilder1(t *testing.T) {
 			"a IN (?,?) OR b IN (?,?)",
 			[]interface{}{1, 2, "c", "d"},
 		},
+		{
+			In("a", Expr("select id from x where name > ?", "b")),
+			"a IN (select id from x where name > ?)",
+			[]interface{}{"b"},
+		},
+		{
+			NotIn("a", Expr("select id from x where name > ?", "b")),
+			"a NOT IN (select id from x where name > ?)",
+			[]interface{}{"b"},
+		},
 	}
 
 	for _, k := range cases {
