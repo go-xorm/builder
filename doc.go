@@ -14,7 +14,8 @@ WARNNING: Currently, only query conditions are supported. Below is the supported
 
 1. Eq is a redefine of a map, you can give one or more conditions to Eq
 
-    import . builder
+    import . "github.com/go-xorm/builder"
+
     sql, args, _ := ToSQL(Eq{"a":1})
     // a=? [1]
     sql, args, _ := ToSQL(Eq{"b":"c"}.And(Eq{"c": 0}))
@@ -30,7 +31,8 @@ WARNNING: Currently, only query conditions are supported. Below is the supported
 
 2. Neq is the same to Eq
 
-    import . builder
+    import . "github.com/go-xorm/builder"
+
     sql, args, _ := ToSQL(Neq{"a":1})
     // a<>? [1]
     sql, args, _ := ToSQL(Neq{"b":"c"}.And(Neq{"c": 0}))
@@ -45,7 +47,9 @@ WARNNING: Currently, only query conditions are supported. Below is the supported
     // b<>? AND c NOT IN (?,?) [1, 2, 3]
 
 3. Gt, Gte, Lt, Lte
-    import . builder
+
+    import . "github.com/go-xorm/builder"
+
     sql, args, _ := ToSQL(Gt{"a", 1}.And(Gte{"b", 2}))
     // a>? AND b>=? [1, 2]
     sql, args, _ := ToSQL(Lt{"a", 1}.Or(Lte{"b", 2}))
@@ -53,13 +57,15 @@ WARNNING: Currently, only query conditions are supported. Below is the supported
 
 4. Like
 
-    import . builder
+    import . "github.com/go-xorm/builder"
+
     sql, args, _ := ToSQL(Like{"a", "c"})
     // a LIKE ? [%c%]
 
 5. Expr you can customerize your sql with Expr
 
-    import . builder
+    import . "github.com/go-xorm/builder"
+
     sql, args, _ := ToSQL(Expr("a = ? ", 1))
     // a = ? [1]
     sql, args, _ := ToSQL(Eq{"a": Expr("select id from table where c = ?", 1)})
@@ -67,7 +73,8 @@ WARNNING: Currently, only query conditions are supported. Below is the supported
 
 6. In and NotIn
 
-    import . builder
+    import . "github.com/go-xorm/builder"
+
     sql, args, _ := ToSQL(In("a", 1, 2, 3))
     // a IN (?,?,?) [1,2,3]
     sql, args, _ := ToSQL(In("a", []int{1, 2, 3}))
@@ -77,7 +84,8 @@ WARNNING: Currently, only query conditions are supported. Below is the supported
 
 7. IsNull and NotNull
 
-    import . builder
+    import . "github.com/go-xorm/builder"
+
     sql, args, _ := ToSQL(IsNull{"a"})
     // a IS NULL []
     sql, args, _ := ToSQL(NotNull{"b"})
@@ -85,20 +93,24 @@ WARNNING: Currently, only query conditions are supported. Below is the supported
 
 8. And(conds ...Cond), And can connect one or more condtions via AND
 
-    import . builder
+    import . "github.com/go-xorm/builder"
+
     sql, args, _ := ToSQL(And(Eq{"a":1}, Like{"b", "c"}, Neq{"d", 2}))
     // a=? AND b LIKE ? AND d<>? [1, %c%, 2]
 
 9. Or(conds ...Cond), Or can connect one or more conditions via Or
 
-    import . builder
+    import . "github.com/go-xorm/builder"
+
     sql, args, _ := ToSQL(Or(Eq{"a":1}, Like{"b", "c"}, Neq{"d", 2}))
     // a=? OR b LIKE ? OR d<>? [1, %c%, 2]
     sql, args, _ := ToSQL(Or(Eq{"a":1}, And(Like{"b", "c"}, Neq{"d", 2})))
     // a=? OR (b LIKE ? AND d<>?) [1, %c%, 2]
 
 10. Between
-    import . builder
+
+    import . "github.com/go-xorm/builder"
+
     sql, args, _ := ToSQL(Between("a", 1, 2))
     // a BETWEEN 1 AND 2
 
