@@ -132,4 +132,15 @@ sql, args, _ := ToSQL(Between("a", 1, 2))
 
 * Define yourself conditions
 
-Since `Cond` is an interface, you can define yourself conditions and compare with them
+Since `Cond` is an interface.
+
+```Go
+type Cond interface {
+	WriteTo(Writer) error
+	And(...Cond) Cond
+	Or(...Cond) Cond
+	IsValid() bool
+}
+```
+
+You can define yourself conditions and compose with other `Cond`.
