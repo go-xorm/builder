@@ -1,10 +1,5 @@
 package builder
 
-import (
-	"errors"
-	"strings"
-)
-
 type optype byte
 
 const (
@@ -15,24 +10,64 @@ const (
 	deleteType               // delete
 )
 
+type join struct {
+	joinType  string
+	joinTable string
+	joinCond  Cond
+}
+
 type Builder struct {
 	optype
 	tableName string
-	cols      []string
 	cond      Cond
+	selects   []string
+	joins     []join
+	inserts   Eq
+	updates   []Set
 }
 
 func From(tableName string) *Builder {
-	return &Builder{tableName: tableName}
+	return &Builder{tableName: tableName, cond: NewCond()}
 }
 
 func (b *Builder) Where(cond Cond) *Builder {
-	b.cond = cond
+	b.cond = b.cond.And(cond)
 	return b
 }
 
+func (b *Builder) Join(joinType, joinTable string, joinCond interface{}) *Builder {
+	switch joinCond.(type) {
+	case Cond:
+		b.joins = append(b.joins, join{joinType, joinTable, joinCond.(Cond)})
+	case string:
+		b.joins = append(b.joins, join{joinType, joinTable, Expr(joinCond.(string))})
+	}
+
+	return b
+}
+
+func (b *Builder) InnerJoin(joinTable string, joinCond interface{}) *Builder {
+	return b.Join("INNER", joinTable, joinCond)
+}
+
+func (b *Builder) LeftJoin(joinTable string, joinCond interface{}) *Builder {
+	return b.Join("LEFT", joinTable, joinCond)
+}
+
+func (b *Builder) RightJoin(joinTable string, joinCond interface{}) *Builder {
+	return b.Join("RIGHT", joinTable, joinCond)
+}
+
+func (b *Builder) CrossJoin(joinTable string, joinCond interface{}) *Builder {
+	return b.Join("CROSS", joinTable, joinCond)
+}
+
+func (b *Builder) FullJoin(joinTable string, joinCond interface{}) *Builder {
+	return b.Join("FULL", joinTable, joinCond)
+}
+
 func (b *Builder) Select(cols ...string) *Builder {
-	b.cols = cols
+	b.selects = cols
 	b.optype = selectType
 	return b
 }
@@ -47,24 +82,49 @@ func (b *Builder) Or(cond Cond) *Builder {
 	return b
 }
 
+func (b *Builder) Insert(eq Eq) *Builder {
+	b.inserts = eq
+	b.optype = insertType
+	return b
+}
+
+func (b *Builder) Update(updates ...Set) *Builder {
+	b.updates = updates
+	b.optype = updateType
+	return b
+}
+
+func (b *Builder) Delete(conds ...Cond) *Builder {
+	b.cond = b.cond.And(conds...)
+	b.optype = deleteType
+	return b
+}
+
+// ToSQL convert a builder to SQL and args
 func (b *Builder) ToSQL() (string, []interface{}, error) {
 	switch b.optype {
 	case condType:
-		return ToSQL(b.cond)
+		return condToSQL(b.cond)
 	case selectType:
-		if len(b.tableName) <= 0 {
-			return "", nil, errors.New("no table indicated")
-		}
-		sql, args, err := ToSQL(b.cond)
-		if err != nil {
-			return "", nil, err
-		}
-		var colString = "*"
-		if len(b.cols) > 0 {
-			colString = strings.Join(b.cols, ",")
-		}
-		return "SELECT " + colString + " FROM " + sql, args, nil
+		return b.selectToSQL()
+	case insertType:
+		return b.insertToSQL()
+	case updateType:
+		return b.updateToSQL()
+	case deleteType:
+		return b.deleteToSQL()
 	}
 
-	return "", nil, errors.New("not supported SQL type")
+	return "", nil, ErrNotSupportType
+}
+
+// ToSQL convert a builder or condtions to SQL and args
+func ToSQL(cond interface{}) (string, []interface{}, error) {
+	switch cond.(type) {
+	case Cond:
+		return condToSQL(cond.(Cond))
+	case *Builder:
+		return cond.(*Builder).ToSQL()
+	}
+	return "", nil, ErrNotSupportType
 }

@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestBuilder1(t *testing.T) {
+func TestBuilderCond(t *testing.T) {
 	var cases = []struct {
 		cond Cond
 		sql  string
@@ -109,4 +109,48 @@ func TestBuilder1(t *testing.T) {
 		}
 		fmt.Println(args)
 	}
+}
+
+func TestBuilderSelect(t *testing.T) {
+	sql, args, err := From("table1").Select("c, d").Where(Eq{"a": 1}).ToSQL()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(sql, args)
+
+	sql, args, err = From("table1").LeftJoin("table2", Eq{"table1.id": 1}.And(Lt{"table2.id": 3})).
+		RightJoin("table3", "table2.id = table3.tid").Select("c, d").Where(Eq{"a": 1}).ToSQL()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(sql, args)
+}
+
+func TestBuilderInsert(t *testing.T) {
+	sql, args, err := From("table1").Insert(Eq{"c": 1, "d": 2}).Where(Eq{"a": 1}).ToSQL()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(sql, args)
+}
+
+func TestBuilderUpdate(t *testing.T) {
+	sql, args, err := From("table1").Where(Eq{"a": 1}).Update(Eq{"a": 2}).ToSQL()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(sql, args)
+}
+
+func TestBuilderDelete(t *testing.T) {
+	sql, args, err := From("table1").Delete(Eq{"a": 1}).ToSQL()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(sql, args)
 }

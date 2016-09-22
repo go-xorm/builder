@@ -30,18 +30,6 @@ func (s *stringWriter) Append(args ...interface{}) {
 	s.args = append(s.args, args...)
 }
 
-func ToSQL(cond Cond) (string, []interface{}, error) {
-	if cond == nil || !cond.IsValid() {
-		return "", nil, nil
-	}
-
-	w := NewWriter()
-	if err := cond.WriteTo(w); err != nil {
-		return "", nil, err
-	}
-	return w.writer.String(), w.args, nil
-}
-
 type Cond interface {
 	WriteTo(Writer) error
 	And(...Cond) Cond
@@ -71,4 +59,16 @@ func (condEmpty) Or(conds ...Cond) Cond {
 
 func (condEmpty) IsValid() bool {
 	return false
+}
+
+func condToSQL(cond Cond) (string, []interface{}, error) {
+	if cond == nil || !cond.IsValid() {
+		return "", nil, nil
+	}
+
+	w := NewWriter()
+	if err := cond.WriteTo(w); err != nil {
+		return "", nil, err
+	}
+	return w.writer.String(), w.args, nil
 }
