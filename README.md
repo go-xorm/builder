@@ -6,7 +6,32 @@ Make sure you have installed Go 1.1+ and then:
 
     go get github.com/go-xorm/builder
 
-WARNNING: Currently, only query conditions are supported. Below is the supported conditions.
+# Insert
+
+```Go
+sql, args, err := From("table1").Insert(Eq{"c": 1, "d": 2}).Where(Eq{"a": 1}).ToSQL()
+```
+
+# Select
+
+```Go
+sql, args, err = From("table1").LeftJoin("table2", Eq{"table1.id": 1}.And(Lt{"table2.id": 3})).
+		RightJoin("table3", "table2.id = table3.tid").Select("c, d").Where(Eq{"a": 1}).ToSQL()
+```
+
+# Update
+
+```Go
+sql, args, err := From("table1").Where(Eq{"a": 1}).Update(Eq{"a": 2}).ToSQL()
+```
+
+# Delete
+
+```Go
+sql, args, err := From("table1").Delete(Eq{"a": 1}).ToSQL()
+```
+
+# Conditions
 
 * `Eq` is a redefine of a map, you can give one or more conditions to `Eq`
 
