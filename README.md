@@ -9,26 +9,28 @@ Make sure you have installed Go 1.1+ and then:
 # Insert
 
 ```Go
-sql, args, err := From("table1").Insert(Eq{"c": 1, "d": 2}).Where(Eq{"a": 1}).ToSQL()
+sql, args, err := Insert(Eq{"c": 1, "d": 2}).Into("table1").ToSQL()
 ```
 
 # Select
 
 ```Go
-sql, args, err = From("table1").LeftJoin("table2", Eq{"table1.id": 1}.And(Lt{"table2.id": 3})).
-		RightJoin("table3", "table2.id = table3.tid").Select("c, d").Where(Eq{"a": 1}).ToSQL()
+sql, args, err := Select("c, d").From("table1").Where(Eq{"a": 1}).ToSQL()
+
+sql, args, err = Select("c, d").From("table1").LeftJoin("table2", Eq{"table1.id": 1}.And(Lt{"table2.id": 3})).
+		RightJoin("table3", "table2.id = table3.tid").Where(Eq{"a": 1}).ToSQL()
 ```
 
 # Update
 
 ```Go
-sql, args, err := From("table1").Where(Eq{"a": 1}).Update(Eq{"a": 2}).ToSQL()
+sql, args, err := Update(Eq{"a": 2}).From("table1").Where(Eq{"a": 1}).ToSQL()
 ```
 
 # Delete
 
 ```Go
-sql, args, err := From("table1").Delete(Eq{"a": 1}).ToSQL()
+sql, args, err := Delete(Eq{"a": 1}).From("table1").ToSQL()
 ```
 
 # Conditions

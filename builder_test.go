@@ -112,15 +112,15 @@ func TestBuilderCond(t *testing.T) {
 }
 
 func TestBuilderSelect(t *testing.T) {
-	sql, args, err := From("table1").Select("c, d").Where(Eq{"a": 1}).ToSQL()
+	sql, args, err := Select("c, d").From("table1").Where(Eq{"a": 1}).ToSQL()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	fmt.Println(sql, args)
 
-	sql, args, err = From("table1").LeftJoin("table2", Eq{"table1.id": 1}.And(Lt{"table2.id": 3})).
-		RightJoin("table3", "table2.id = table3.tid").Select("c, d").Where(Eq{"a": 1}).ToSQL()
+	sql, args, err = Select("c, d").From("table1").LeftJoin("table2", Eq{"table1.id": 1}.And(Lt{"table2.id": 3})).
+		RightJoin("table3", "table2.id = table3.tid").Where(Eq{"a": 1}).ToSQL()
 	if err != nil {
 		t.Error(err)
 		return
@@ -129,7 +129,7 @@ func TestBuilderSelect(t *testing.T) {
 }
 
 func TestBuilderInsert(t *testing.T) {
-	sql, args, err := From("table1").Insert(Eq{"c": 1, "d": 2}).Where(Eq{"a": 1}).ToSQL()
+	sql, args, err := Insert(Eq{"c": 1, "d": 2}).Into("table1").ToSQL()
 	if err != nil {
 		t.Error(err)
 		return
@@ -138,7 +138,7 @@ func TestBuilderInsert(t *testing.T) {
 }
 
 func TestBuilderUpdate(t *testing.T) {
-	sql, args, err := From("table1").Where(Eq{"a": 1}).Update(Eq{"a": 2}).ToSQL()
+	sql, args, err := Update(Eq{"a": 2}).From("table1").Where(Eq{"a": 1}).ToSQL()
 	if err != nil {
 		t.Error(err)
 		return
@@ -147,7 +147,7 @@ func TestBuilderUpdate(t *testing.T) {
 }
 
 func TestBuilderDelete(t *testing.T) {
-	sql, args, err := From("table1").Delete(Eq{"a": 1}).ToSQL()
+	sql, args, err := Delete(Eq{"a": 1}).From("table1").ToSQL()
 	if err != nil {
 		t.Error(err)
 		return

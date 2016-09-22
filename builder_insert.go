@@ -15,7 +15,7 @@ func (b *Builder) insertToSQL() (string, []interface{}, error) {
 	}
 
 	w := NewWriter()
-	if _, err := fmt.Fprintf(w, "INSERT %s (", b.tableName); err != nil {
+	if _, err := fmt.Fprintf(w, "INSERT INTO %s (", b.tableName); err != nil {
 		return "", nil, err
 	}
 

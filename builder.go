@@ -26,12 +26,38 @@ type Builder struct {
 	updates   []Set
 }
 
-func From(tableName string) *Builder {
-	return &Builder{tableName: tableName, cond: NewCond()}
+func Select(cols ...string) *Builder {
+	builder := &Builder{cond: NewCond()}
+	return builder.Select(cols...)
+}
+
+func Insert(eq Eq) *Builder {
+	builder := &Builder{cond: NewCond()}
+	return builder.Insert(eq)
+}
+
+func Update(updates ...Set) *Builder {
+	builder := &Builder{cond: NewCond()}
+	return builder.Update(updates...)
+}
+
+func Delete(conds ...Cond) *Builder {
+	builder := &Builder{cond: NewCond()}
+	return builder.Delete(conds...)
 }
 
 func (b *Builder) Where(cond Cond) *Builder {
 	b.cond = b.cond.And(cond)
+	return b
+}
+
+func (b *Builder) From(tableName string) *Builder {
+	b.tableName = tableName
+	return b
+}
+
+func (b *Builder) Into(tableName string) *Builder {
+	b.tableName = tableName
 	return b
 }
 
