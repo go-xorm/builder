@@ -59,15 +59,6 @@ func (condIn condIn) WriteTo(w Writer) error {
 		for _, val := range vals {
 			w.Append(val)
 		}
-	case []string:
-		vals := condIn.vals[0].([]string)
-		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
-			return err
-		}
-		for _, val := range vals {
-			w.Append(val)
-		}
 	case []int64:
 		vals := condIn.vals[0].([]int64)
 		questionMark := strings.Repeat("?,", len(vals))
@@ -77,6 +68,66 @@ func (condIn condIn) WriteTo(w Writer) error {
 		for _, val := range vals {
 			w.Append(val)
 		}
+	case []uint8:
+		vals := condIn.vals[0].([]uint8)
+		questionMark := strings.Repeat("?,", len(vals))
+		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+			return err
+		}
+		for _, val := range vals {
+			w.Append(val)
+		}
+	case []uint16:
+		vals := condIn.vals[0].([]uint16)
+		questionMark := strings.Repeat("?,", len(vals))
+		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+			return err
+		}
+		for _, val := range vals {
+			w.Append(val)
+		}
+	case []uint:
+		vals := condIn.vals[0].([]uint)
+		questionMark := strings.Repeat("?,", len(vals))
+		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+			return err
+		}
+		for _, val := range vals {
+			w.Append(val)
+		}
+	case []uint32:
+		vals := condIn.vals[0].([]uint32)
+		questionMark := strings.Repeat("?,", len(vals))
+		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+			return err
+		}
+		for _, val := range vals {
+			w.Append(val)
+		}
+	case []uint64:
+		vals := condIn.vals[0].([]uint64)
+		questionMark := strings.Repeat("?,", len(vals))
+		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+			return err
+		}
+		for _, val := range vals {
+			w.Append(val)
+		}
+	case []string:
+		vals := condIn.vals[0].([]string)
+		questionMark := strings.Repeat("?,", len(vals))
+		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+			return err
+		}
+		for _, val := range vals {
+			w.Append(val)
+		}
+	case []interface{}:
+		questionMark := strings.Repeat("?,", len(condIn.vals))
+		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+			return err
+		}
+		w.Append(condIn.vals[0].([]interface{})...)
 	case expr:
 		val := condIn.vals[0].(expr)
 		if _, err := fmt.Fprintf(w, "%s IN (", condIn.col); err != nil {
