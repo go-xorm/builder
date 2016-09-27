@@ -11,7 +11,7 @@ func (eq Eq) WriteTo(w Writer) error {
 	var i = 0
 	for k, v := range eq {
 		switch v.(type) {
-		case []int, []int64, []string, []int32, []int16, []int8, []uint, []uint64, []uint32, []uint16, []uint8, []interface{}:
+		case []int, []int64, []string, []int32, []int16, []int8, []uint, []uint64, []uint32, []uint16, []interface{}:
 			if err := In(k, v).WriteTo(w); err != nil {
 				return err
 			}
