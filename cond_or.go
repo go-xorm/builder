@@ -19,7 +19,15 @@ func Or(conds ...Cond) Cond {
 
 func (or condOr) WriteTo(w Writer) error {
 	for i, cond := range or {
-		if _, ok := cond.(condAnd); ok {
+		var needQuote bool
+		switch cond.(type) {
+		case condAnd:
+			needQuote = true
+		case Eq:
+			needQuote = (len(cond.(Eq)) > 1)
+		}
+
+		if needQuote {
 			fmt.Fprint(w, "(")
 		}
 
@@ -28,7 +36,7 @@ func (or condOr) WriteTo(w Writer) error {
 			return err
 		}
 
-		if _, ok := cond.(condAnd); ok {
+		if needQuote {
 			fmt.Fprint(w, ")")
 		}
 

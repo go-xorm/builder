@@ -87,6 +87,11 @@ func TestBuilderCond(t *testing.T) {
 			"a NOT IN (select id from x where name > ?)",
 			[]interface{}{"b"},
 		},
+		{
+			Or(Eq{"a": 1, "b": 2}, Eq{"c": 3, "d": 4}),
+			"(a=? AND b=?) OR (c=? AND d=?)",
+			[]interface{}{1, 2, 3, 4},
+		},
 	}
 
 	for _, k := range cases {
