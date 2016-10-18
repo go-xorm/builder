@@ -4,18 +4,18 @@ import "fmt"
 
 // Between
 type Between struct {
-	col     string
-	lessVal interface{}
-	moreVal interface{}
+	Col     string
+	LessVal interface{}
+	MoreVal interface{}
 }
 
 var _ Cond = Between{}
 
 func (between Between) WriteTo(w Writer) error {
-	if _, err := fmt.Fprintf(w, "%s BETWEEN ? AND ?", between.col); err != nil {
+	if _, err := fmt.Fprintf(w, "%s BETWEEN ? AND ?", between.Col); err != nil {
 		return err
 	}
-	w.Append(between.lessVal, between.moreVal)
+	w.Append(between.LessVal, between.MoreVal)
 	return nil
 }
 
@@ -28,5 +28,5 @@ func (between Between) Or(conds ...Cond) Cond {
 }
 
 func (between Between) IsValid() bool {
-	return len(between.col) > 0
+	return len(between.Col) > 0
 }
