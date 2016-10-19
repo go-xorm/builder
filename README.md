@@ -153,7 +153,7 @@ sql, args, _ := ToSQL(Or(Eq{"a":1}, And(Like{"b", "c"}, Neq{"d", 2})))
 ```Go
 import . "github.com/go-xorm/builder"
 
-sql, args, _ := ToSQL(Between("a", 1, 2))
+sql, args, _ := ToSQL(Between{"a", 1, 2})
 // a BETWEEN 1 AND 2
 ```
 
