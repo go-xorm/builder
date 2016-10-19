@@ -27,6 +27,18 @@ func (neq Neq) WriteTo(w Writer) error {
 			if _, err := fmt.Fprintf(w, ")"); err != nil {
 				return err
 			}
+		case *Builder:
+			if _, err := fmt.Fprintf(w, "%s<>(", k); err != nil {
+				return err
+			}
+
+			if err := v.(*Builder).WriteTo(w); err != nil {
+				return err
+			}
+
+			if _, err := fmt.Fprintf(w, ")"); err != nil {
+				return err
+			}
 		default:
 			if _, err := fmt.Fprintf(w, "%s<>?", k); err != nil {
 				return err

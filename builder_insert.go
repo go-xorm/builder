@@ -6,17 +6,16 @@ import (
 	"fmt"
 )
 
-func (b *Builder) insertToSQL() (string, []interface{}, error) {
+func (b *Builder) insertWriteTo(w Writer) error {
 	if len(b.tableName) <= 0 {
-		return "", nil, errors.New("no table indicated")
+		return errors.New("no table indicated")
 	}
 	if len(b.inserts) <= 0 {
-		return "", nil, errors.New("no column to be update")
+		return errors.New("no column to be update")
 	}
 
-	w := NewWriter()
 	if _, err := fmt.Fprintf(w, "INSERT INTO %s (", b.tableName); err != nil {
-		return "", nil, err
+		return err
 	}
 
 	var args = make([]interface{}, 0)
@@ -35,25 +34,25 @@ func (b *Builder) insertToSQL() (string, []interface{}, error) {
 
 		if i != len(b.inserts)-1 {
 			if _, err := fmt.Fprint(w, ","); err != nil {
-				return "", nil, err
+				return err
 			}
 			if _, err := fmt.Fprint(valBuffer, ","); err != nil {
-				return "", nil, err
+				return err
 			}
 		}
 		i = i + 1
 	}
 
 	if _, err := fmt.Fprint(w, ") Values ("); err != nil {
-		return "", nil, err
+		return err
 	}
 
 	if _, err := w.Write(valBuffer.Bytes()); err != nil {
-		return "", nil, err
+		return err
 	}
 	if _, err := fmt.Fprint(w, ")"); err != nil {
-		return "", nil, err
+		return err
 	}
 
-	return w.writer.String(), args, nil
+	return nil
 }

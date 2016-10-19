@@ -126,22 +126,31 @@ func (b *Builder) Delete(conds ...Cond) *Builder {
 	return b
 }
 
-// ToSQL convert a builder to SQL and args
-func (b *Builder) ToSQL() (string, []interface{}, error) {
+func (b *Builder) WriteTo(w Writer) error {
 	switch b.optype {
 	case condType:
-		return condToSQL(b.cond)
+		return b.cond.WriteTo(w)
 	case selectType:
-		return b.selectToSQL()
+		return b.selectWriteTo(w)
 	case insertType:
-		return b.insertToSQL()
+		return b.insertWriteTo(w)
 	case updateType:
-		return b.updateToSQL()
+		return b.updateWriteTo(w)
 	case deleteType:
-		return b.deleteToSQL()
+		return b.deleteWriteTo(w)
 	}
 
-	return "", nil, ErrNotSupportType
+	return ErrNotSupportType
+}
+
+// ToSQL convert a builder to SQL and args
+func (b *Builder) ToSQL() (string, []interface{}, error) {
+	w := NewWriter()
+	if err := b.WriteTo(w); err != nil {
+		return "", nil, err
+	}
+
+	return w.writer.String(), w.args, nil
 }
 
 // ToSQL convert a builder or condtions to SQL and args

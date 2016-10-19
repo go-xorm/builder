@@ -20,6 +20,18 @@ func WriteMap(w Writer, data map[string]interface{}, op string) error {
 			if _, err := fmt.Fprintf(w, ")"); err != nil {
 				return err
 			}
+		case *Builder:
+			if _, err := fmt.Fprintf(w, "%s%s(", k, op); err != nil {
+				return err
+			}
+
+			if err := v.(*Builder).WriteTo(w); err != nil {
+				return err
+			}
+
+			if _, err := fmt.Fprintf(w, ")"); err != nil {
+				return err
+			}
 		default:
 			if _, err := fmt.Fprintf(w, "%s%s?", k, op); err != nil {
 				return err

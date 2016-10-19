@@ -139,6 +139,17 @@ func (condIn condIn) WriteTo(w Writer) error {
 		if _, err := fmt.Fprintf(w, ")"); err != nil {
 			return err
 		}
+	case *Builder:
+		bd := condIn.vals[0].(*Builder)
+		if _, err := fmt.Fprintf(w, "%s IN (", condIn.col); err != nil {
+			return err
+		}
+		if err := bd.WriteTo(w); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, ")"); err != nil {
+			return err
+		}
 	default:
 		questionMark := strings.Repeat("?,", len(condIn.vals))
 		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
