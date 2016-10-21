@@ -149,6 +149,20 @@ func TestBuilderUpdate(t *testing.T) {
 		return
 	}
 	fmt.Println(sql, args)
+
+	sql, args, err = Update(Eq{"a": 2, "b": Incr(1)}).From("table2").Where(Eq{"a": 1}).ToSQL()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(sql, args)
+
+	sql, args, err = Update(Eq{"a": 2, "b": Incr(1), "c": Decr(1), "d": Expr("select count(*) from table2")}).From("table2").Where(Eq{"a": 1}).ToSQL()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(sql, args)
 }
 
 func TestBuilderDelete(t *testing.T) {

@@ -54,5 +54,7 @@ func (b *Builder) insertWriteTo(w Writer) error {
 		return err
 	}
 
+	w.Append(args...)
+
 	return nil
 }

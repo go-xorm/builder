@@ -23,7 +23,7 @@ type Builder struct {
 	selects   []string
 	joins     []join
 	inserts   Eq
-	updates   []Set
+	updates   []Eq
 }
 
 func Select(cols ...string) *Builder {
@@ -36,7 +36,7 @@ func Insert(eq Eq) *Builder {
 	return builder.Insert(eq)
 }
 
-func Update(updates ...Set) *Builder {
+func Update(updates ...Eq) *Builder {
 	builder := &Builder{cond: NewCond()}
 	return builder.Update(updates...)
 }
@@ -114,7 +114,7 @@ func (b *Builder) Insert(eq Eq) *Builder {
 	return b
 }
 
-func (b *Builder) Update(updates ...Set) *Builder {
+func (b *Builder) Update(updates ...Eq) *Builder {
 	b.updates = updates
 	b.optype = updateType
 	return b

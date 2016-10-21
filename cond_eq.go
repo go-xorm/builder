@@ -2,11 +2,15 @@ package builder
 
 import "fmt"
 
+type Incr int
+
+type Decr int
+
 type Eq map[string]interface{}
 
 var _ Cond = Eq{}
 
-func (eq Eq) WriteTo(w Writer) error {
+func (eq Eq) opWriteTo(op string, w Writer) error {
 	var i = 0
 	for k, v := range eq {
 		switch v.(type) {
@@ -38,7 +42,16 @@ func (eq Eq) WriteTo(w Writer) error {
 			if _, err := fmt.Fprintf(w, ")"); err != nil {
 				return err
 			}
-
+		case Incr:
+			if _, err := fmt.Fprintf(w, "%s=%s+?", k, k); err != nil {
+				return err
+			}
+			w.Append(int(v.(Incr)))
+		case Decr:
+			if _, err := fmt.Fprintf(w, "%s=%s-?", k, k); err != nil {
+				return err
+			}
+			w.Append(int(v.(Decr)))
 		default:
 			if _, err := fmt.Fprintf(w, "%s=?", k); err != nil {
 				return err
@@ -46,13 +59,17 @@ func (eq Eq) WriteTo(w Writer) error {
 			w.Append(v)
 		}
 		if i != len(eq)-1 {
-			if _, err := fmt.Fprint(w, " AND "); err != nil {
+			if _, err := fmt.Fprint(w, op); err != nil {
 				return err
 			}
 		}
 		i = i + 1
 	}
 	return nil
+}
+
+func (eq Eq) WriteTo(w Writer) error {
+	return eq.opWriteTo(" AND ", w)
 }
 
 func (eq Eq) And(conds ...Cond) Cond {

@@ -18,7 +18,7 @@ func (b *Builder) updateWriteTo(w Writer) error {
 	}
 
 	for i, s := range b.updates {
-		if err := s.WriteTo(w); err != nil {
+		if err := s.opWriteTo(",", w); err != nil {
 			return err
 		}
 
