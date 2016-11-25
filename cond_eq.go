@@ -19,7 +19,7 @@ func (eq Eq) opWriteTo(op string, w Writer) error {
 				return err
 			}
 		case expr:
-			if _, err := fmt.Fprintf(w, "%s=(", k); err != nil {
+			if _, err := fmt.Fprintf(w, "`%s`=(", k); err != nil {
 				return err
 			}
 
@@ -31,7 +31,7 @@ func (eq Eq) opWriteTo(op string, w Writer) error {
 				return err
 			}
 		case *Builder:
-			if _, err := fmt.Fprintf(w, "%s=(", k); err != nil {
+			if _, err := fmt.Fprintf(w, "`%s`=(", k); err != nil {
 				return err
 			}
 
@@ -43,17 +43,17 @@ func (eq Eq) opWriteTo(op string, w Writer) error {
 				return err
 			}
 		case Incr:
-			if _, err := fmt.Fprintf(w, "%s=%s+?", k, k); err != nil {
+			if _, err := fmt.Fprintf(w, "`%s`=%s+?", k, k); err != nil {
 				return err
 			}
 			w.Append(int(v.(Incr)))
 		case Decr:
-			if _, err := fmt.Fprintf(w, "%s=%s-?", k, k); err != nil {
+			if _, err := fmt.Fprintf(w, "`%s`=%s-?", k, k); err != nil {
 				return err
 			}
 			w.Append(int(v.(Decr)))
 		default:
-			if _, err := fmt.Fprintf(w, "%s=?", k); err != nil {
+			if _, err := fmt.Fprintf(w, "`%s`=?", k); err != nil {
 				return err
 			}
 			w.Append(v)

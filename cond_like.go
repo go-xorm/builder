@@ -7,7 +7,7 @@ type Like [2]string
 var _ Cond = Like{"", ""}
 
 func (like Like) WriteTo(w Writer) error {
-	if _, err := fmt.Fprintf(w, "%s LIKE ?", like[0]); err != nil {
+	if _, err := fmt.Fprintf(w, "`%s` LIKE ?", like[0]); err != nil {
 		return err
 	}
 	w.Append("%" + like[1] + "%")

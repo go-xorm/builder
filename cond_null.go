@@ -8,7 +8,7 @@ type IsNull [1]string
 var _ Cond = IsNull{""}
 
 func (isNull IsNull) WriteTo(w Writer) error {
-	_, err := fmt.Fprintf(w, "%s IS NULL", isNull[0])
+	_, err := fmt.Fprintf(w, "`%s` IS NULL", isNull[0])
 	return err
 }
 
@@ -30,7 +30,7 @@ type NotNull [1]string
 var _ Cond = NotNull{""}
 
 func (notNull NotNull) WriteTo(w Writer) error {
-	_, err := fmt.Fprintf(w, "%s IS NOT NULL", notNull[0])
+	_, err := fmt.Fprintf(w, "`%s` IS NOT NULL", notNull[0])
 	return err
 }
 

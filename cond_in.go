@@ -28,7 +28,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		for _, val := range vals {
@@ -40,7 +40,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		for _, val := range vals {
@@ -52,7 +52,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		for _, val := range vals {
@@ -64,7 +64,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		for _, val := range vals {
@@ -76,7 +76,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		for _, val := range vals {
@@ -88,7 +88,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		for _, val := range vals {
@@ -100,7 +100,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		for _, val := range vals {
@@ -112,7 +112,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		for _, val := range vals {
@@ -124,7 +124,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		for _, val := range vals {
@@ -136,7 +136,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		for _, val := range vals {
@@ -148,7 +148,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		for _, val := range vals {
@@ -160,13 +160,13 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		w.Append(vals...)
 	case expr:
 		val := condIn.vals[0].(expr)
-		if _, err := fmt.Fprintf(w, "%s IN (", condIn.col); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (", condIn.col); err != nil {
 			return err
 		}
 		if err := val.WriteTo(w); err != nil {
@@ -177,7 +177,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 		}
 	case *Builder:
 		bd := condIn.vals[0].(*Builder)
-		if _, err := fmt.Fprintf(w, "%s IN (", condIn.col); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (", condIn.col); err != nil {
 			return err
 		}
 		if err := bd.WriteTo(w); err != nil {
@@ -191,7 +191,7 @@ func (condIn condIn) WriteTo(w Writer) error {
 			return ErrNoInConditions
 		}
 		questionMark := strings.Repeat("?,", len(condIn.vals))
-		if _, err := fmt.Fprintf(w, "%s IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
+		if _, err := fmt.Fprintf(w, "`%s` IN (%s)", condIn.col, questionMark[:len(questionMark)-1]); err != nil {
 			return err
 		}
 		w.Append(condIn.vals...)

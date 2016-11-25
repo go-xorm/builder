@@ -12,7 +12,7 @@ type Between struct {
 var _ Cond = Between{}
 
 func (between Between) WriteTo(w Writer) error {
-	if _, err := fmt.Fprintf(w, "%s BETWEEN ? AND ?", between.Col); err != nil {
+	if _, err := fmt.Fprintf(w, "`%s` BETWEEN ? AND ?", between.Col); err != nil {
 		return err
 	}
 	w.Append(between.LessVal, between.MoreVal)
