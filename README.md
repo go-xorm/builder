@@ -1,5 +1,7 @@
 # SQL builder
 
+[![CircleCI](https://circleci.com/gh/go-xorm/builder/tree/master.svg?style=svg)](https://circleci.com/gh/go-xorm/builder/tree/master)
+
 Package builder is a lightweight and fast SQL builder for Go and XORM.
 
 Make sure you have installed Go 1.1+ and then:
