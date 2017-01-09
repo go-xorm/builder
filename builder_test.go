@@ -91,7 +91,7 @@ func TestBuilderCond(t *testing.T) {
 			"a NOT IN (select id from x where name > ?)",
 			[]interface{}{"b"},
 		},
-		// FIXME: since map will not gurantee the sequence, this may be failed random
+		// FIXME: since map will not guarantee the sequence, this may be failed random
 		/*{
 			Or(Eq{"a": 1, "b": 2}, Eq{"c": 3, "d": 4}),
 			"(a=? AND b=?) OR (c=? AND d=?)",
