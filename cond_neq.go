@@ -22,7 +22,7 @@ func (neq Neq) WriteTo(w Writer) error {
 				return err
 			}
 		case expr:
-			if _, err := fmt.Fprintf(w, "%s<>(", k); err != nil {
+			if _, err := fmt.Fprintf(w, "`%s`<>(", k); err != nil {
 				return err
 			}
 
@@ -34,7 +34,7 @@ func (neq Neq) WriteTo(w Writer) error {
 				return err
 			}
 		case *Builder:
-			if _, err := fmt.Fprintf(w, "%s<>(", k); err != nil {
+			if _, err := fmt.Fprintf(w, "`%s`<>(", k); err != nil {
 				return err
 			}
 
@@ -46,7 +46,7 @@ func (neq Neq) WriteTo(w Writer) error {
 				return err
 			}
 		default:
-			if _, err := fmt.Fprintf(w, "%s<>?", k); err != nil {
+			if _, err := fmt.Fprintf(w, "`%s`<>?", k); err != nil {
 				return err
 			}
 			args = append(args, v)

@@ -13,7 +13,7 @@ func WriteMap(w Writer, data map[string]interface{}, op string) error {
 	for k, v := range data {
 		switch v.(type) {
 		case expr:
-			if _, err := fmt.Fprintf(w, "%s%s(", k, op); err != nil {
+			if _, err := fmt.Fprintf(w, "`%s`%s(", k, op); err != nil {
 				return err
 			}
 
@@ -25,7 +25,7 @@ func WriteMap(w Writer, data map[string]interface{}, op string) error {
 				return err
 			}
 		case *Builder:
-			if _, err := fmt.Fprintf(w, "%s%s(", k, op); err != nil {
+			if _, err := fmt.Fprintf(w, "`%s`%s(", k, op); err != nil {
 				return err
 			}
 
@@ -37,7 +37,7 @@ func WriteMap(w Writer, data map[string]interface{}, op string) error {
 				return err
 			}
 		default:
-			if _, err := fmt.Fprintf(w, "%s%s?", k, op); err != nil {
+			if _, err := fmt.Fprintf(w, "`%s`%s?", k, op); err != nil {
 				return err
 			}
 			args = append(args, v)

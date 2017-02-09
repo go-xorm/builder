@@ -17,7 +17,7 @@ var _ Cond = Between{}
 
 // WriteTo write data to Writer
 func (between Between) WriteTo(w Writer) error {
-	if _, err := fmt.Fprintf(w, "%s BETWEEN ? AND ?", between.Col); err != nil {
+	if _, err := fmt.Fprintf(w, "`%s` BETWEEN ? AND ?", between.Col); err != nil {
 		return err
 	}
 	w.Append(between.LessVal, between.MoreVal)

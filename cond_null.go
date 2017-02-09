@@ -13,7 +13,7 @@ var _ Cond = IsNull{""}
 
 // WriteTo write SQL to Writer
 func (isNull IsNull) WriteTo(w Writer) error {
-	_, err := fmt.Fprintf(w, "%s IS NULL", isNull[0])
+	_, err := fmt.Fprintf(w, "`%s` IS NULL", isNull[0])
 	return err
 }
 
@@ -39,7 +39,7 @@ var _ Cond = NotNull{""}
 
 // WriteTo write SQL to Writer
 func (notNull NotNull) WriteTo(w Writer) error {
-	_, err := fmt.Fprintf(w, "%s IS NOT NULL", notNull[0])
+	_, err := fmt.Fprintf(w, "`%s` IS NOT NULL", notNull[0])
 	return err
 }
 
