@@ -17,14 +17,14 @@ func TestBuilderCond(t *testing.T) {
 		args []interface{}
 	}{
 		{
-			Eq{"a": 1}.And(Like{"b", "c"}).Or(Eq{"a": 2}.And(Like{"b", "g"})),
-			"(a=? AND b LIKE ?) OR (a=? AND b LIKE ?)",
-			[]interface{}{1, "%c%", 2, "%g%"},
+			Eq{"a": 1}.And(Like{"b", "%c%"}).Or(Eq{"a": 2}.And(Like{"b", "%g%"})),
+			"(a=? AND b LIKE '%c%') OR (a=? AND b LIKE '%g%')",
+			[]interface{}{1, 2},
 		},
 		{
-			Eq{"a": 1}.Or(Like{"b", "c"}).And(Eq{"a": 2}.Or(Like{"b", "g"})),
-			"(a=? OR b LIKE ?) AND (a=? OR b LIKE ?)",
-			[]interface{}{1, "%c%", 2, "%g%"},
+			Eq{"a": 1}.Or(Like{"b", "%c%"}).And(Eq{"a": 2}.Or(Like{"b", "%g%"})),
+			"(a=? OR b LIKE '%c%') AND (a=? OR b LIKE '%g%')",
+			[]interface{}{1, 2},
 		},
 		{
 			Eq{"d": []string{"e", "f"}},

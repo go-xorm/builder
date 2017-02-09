@@ -91,8 +91,12 @@ sql, args, _ := ToSQL(Lt{"a", 1}.Or(Lte{"b", 2}))
 ```Go
 import . "github.com/go-xorm/builder"
 
-sql, args, _ := ToSQL(Like{"a", "c"})
-// a LIKE ? [%c%]
+sql, args, _ := ToSQL(Like{"a", "%c%"})
+// a LIKE '?' [%c%]
+sql, args, _ := ToSQL(Like{"a", "%c"})
+// a LIKE '?' [%c]
+sql, args, _ := ToSQL(Like{"a", "c%"})
+// a LIKE '?' [c%]
 ```
 
 * `Expr` you can customerize your sql with `Expr`
@@ -135,8 +139,8 @@ sql, args, _ := ToSQL(NotNull{"b"})
 ```Go
 import . "github.com/go-xorm/builder"
 
-sql, args, _ := ToSQL(And(Eq{"a":1}, Like{"b", "c"}, Neq{"d", 2}))
-// a=? AND b LIKE ? AND d<>? [1, %c%, 2]
+sql, args, _ := ToSQL(And(Eq{"a":1}, Like{"b", "%c%"}, Neq{"d", 2}))
+// a=? AND b LIKE '?' AND d<>? [1, %c%, 2]
 ```
 
 * `Or(conds ...Cond)`, Or can connect one or more conditions via Or
@@ -144,10 +148,10 @@ sql, args, _ := ToSQL(And(Eq{"a":1}, Like{"b", "c"}, Neq{"d", 2}))
 ```Go
 import . "github.com/go-xorm/builder"
 
-sql, args, _ := ToSQL(Or(Eq{"a":1}, Like{"b", "c"}, Neq{"d", 2}))
-// a=? OR b LIKE ? OR d<>? [1, %c%, 2]
-sql, args, _ := ToSQL(Or(Eq{"a":1}, And(Like{"b", "c"}, Neq{"d", 2})))
-// a=? OR (b LIKE ? AND d<>?) [1, %c%, 2]
+sql, args, _ := ToSQL(Or(Eq{"a":1}, Like{"b", "%c%"}, Neq{"d", 2}))
+// a=? OR b LIKE '?' OR d<>? [1, %c%, 2]
+sql, args, _ := ToSQL(Or(Eq{"a":1}, And(Like{"b", "%c%"}, Neq{"d", 2})))
+// a=? OR (b LIKE '?' AND d<>?) [1, %c%, 2]
 ```
 
 * `Between`

@@ -13,10 +13,9 @@ var _ Cond = Like{"", ""}
 
 // WriteTo write SQL to Writer
 func (like Like) WriteTo(w Writer) error {
-	if _, err := fmt.Fprintf(w, "%s LIKE ?", like[0]); err != nil {
+	if _, err := fmt.Fprintf(w, "%s LIKE '%s'", like[0], like[1]); err != nil {
 		return err
 	}
-	w.Append("%" + like[1] + "%")
 	return nil
 }
 
