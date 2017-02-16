@@ -10,6 +10,8 @@ import (
 	"testing"
 )
 
+type MyInt int
+
 func TestBuilderCond(t *testing.T) {
 	var cases = []struct {
 		cond Cond
@@ -85,6 +87,11 @@ func TestBuilderCond(t *testing.T) {
 			In("a", Expr("select id from x where name > ?", "b")),
 			"a IN (select id from x where name > ?)",
 			[]interface{}{"b"},
+		},
+		{
+			In("a", []MyInt{1, 2}).Or(In("b", []string{"c", "d"})),
+			"a IN (?,?) OR b IN (?,?)",
+			[]interface{}{MyInt(1), MyInt(2), "c", "d"},
 		},
 		{
 			NotIn("a", Expr("select id from x where name > ?", "b")),
