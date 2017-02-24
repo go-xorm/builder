@@ -94,9 +94,19 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{MyInt(1), MyInt(2), "c", "d"},
 		},
 		{
+			In("a", []int{}),
+			"a IN ()",
+			[]interface{}{},
+		},
+		{
 			NotIn("a", Expr("select id from x where name > ?", "b")),
 			"a NOT IN (select id from x where name > ?)",
 			[]interface{}{"b"},
+		},
+		{
+			NotIn("a", []int{}),
+			"a NOT IN ()",
+			[]interface{}{},
 		},
 		// FIXME: since map will not guarantee the sequence, this may be failed random
 		/*{
