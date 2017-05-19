@@ -95,7 +95,7 @@ func TestBuilderCond(t *testing.T) {
 		},
 		{
 			In("a", []int{}),
-			"a IN ()",
+			"0=1",
 			[]interface{}{},
 		},
 		{
@@ -105,7 +105,7 @@ func TestBuilderCond(t *testing.T) {
 		},
 		{
 			NotIn("a", []int{}),
-			"a NOT IN ()",
+			"0=0",
 			[]interface{}{},
 		},
 		// FIXME: since map will not guarantee the sequence, this may be failed random
