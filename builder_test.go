@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type MyInt int
@@ -200,4 +202,18 @@ func TestBuilderDelete(t *testing.T) {
 		return
 	}
 	fmt.Println(sql, args)
+}
+
+func TestSubquery(t *testing.T) {
+	subb := Select("id").From("table_b").Where(Eq{"b": "a"})
+	b := Select("a, b").From("table_a").Where(
+		Eq{
+			"id":   23,
+			"b_id": subb,
+		},
+	)
+	sql, args, err := b.ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT a, b FROM table_a WHERE id=? AND b_id=(SELECT id FROM table_b WHERE b=?)", sql)
+	assert.EqualValues(t, []interface{}{23, "a"}, args)
 }
