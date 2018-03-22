@@ -217,3 +217,12 @@ func TestSubquery(t *testing.T) {
 	assert.EqualValues(t, "SELECT a, b FROM table_a WHERE id=? AND b_id=(SELECT id FROM table_b WHERE b=?)", sql)
 	assert.EqualValues(t, []interface{}{23, "a"}, args)
 }
+
+// https://github.com/go-xorm/xorm/issues/820
+func TestExprCond(t *testing.T) {
+	b := Select("id").From("table1").Where(expr{sql: "a=? OR b=?", args: []interface{}{1, 2}}).Where(Or(Eq{"c": 3}, Eq{"d": 4}))
+	sql, args, err := b.ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT id FROM table1 WHERE (a=? OR b=?) AND (c=? OR d=?)", sql)
+	assert.EqualValues(t, []interface{}{1, 2, 3, 4}, args)
+}
