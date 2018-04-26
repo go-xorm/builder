@@ -36,9 +36,29 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{"e", "f"},
 		},
 		{
+			Eq{"e": Select("id").From("f").Where(Eq{"g": 1})},
+			"e=(SELECT id FROM f WHERE g=?)",
+			[]interface{}{1},
+		},
+		{
+			Eq{"e": Expr("SELECT id FROM f WHERE g=?", 1)},
+			"e=(SELECT id FROM f WHERE g=?)",
+			[]interface{}{1},
+		},
+		{
 			Neq{"d": []string{"e", "f"}},
 			"d NOT IN (?,?)",
 			[]interface{}{"e", "f"},
+		},
+		{
+			Neq{"e": Select("id").From("f").Where(Eq{"g": 1})},
+			"e<>(SELECT id FROM f WHERE g=?)",
+			[]interface{}{1},
+		},
+		{
+			Neq{"e": Expr("SELECT id FROM f WHERE g=?", 1)},
+			"e<>(SELECT id FROM f WHERE g=?)",
+			[]interface{}{1},
 		},
 		{
 			Lt{"d": 3},
@@ -46,9 +66,29 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{3},
 		},
 		{
+			Lt{"e": Select("id").From("f").Where(Eq{"g": 1})},
+			"e<(SELECT id FROM f WHERE g=?)",
+			[]interface{}{1},
+		},
+		{
+			Lt{"e": Expr("SELECT id FROM f WHERE g=?", 1)},
+			"e<(SELECT id FROM f WHERE g=?)",
+			[]interface{}{1},
+		},
+		{
 			Lte{"d": 3},
 			"d<=?",
 			[]interface{}{3},
+		},
+		{
+			Lte{"e": Select("id").From("f").Where(Eq{"g": 1})},
+			"e<=(SELECT id FROM f WHERE g=?)",
+			[]interface{}{1},
+		},
+		{
+			Lte{"e": Expr("SELECT id FROM f WHERE g=?", 1)},
+			"e<=(SELECT id FROM f WHERE g=?)",
+			[]interface{}{1},
 		},
 		{
 			Gt{"d": 3},
@@ -56,9 +96,29 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{3},
 		},
 		{
+			Gt{"e": Select("id").From("f").Where(Eq{"g": 1})},
+			"e>(SELECT id FROM f WHERE g=?)",
+			[]interface{}{1},
+		},
+		{
+			Gt{"e": Expr("SELECT id FROM f WHERE g=?", 1)},
+			"e>(SELECT id FROM f WHERE g=?)",
+			[]interface{}{1},
+		},
+		{
 			Gte{"d": 3},
 			"d>=?",
 			[]interface{}{3},
+		},
+		{
+			Gte{"e": Select("id").From("f").Where(Eq{"g": 1})},
+			"e>=(SELECT id FROM f WHERE g=?)",
+			[]interface{}{1},
+		},
+		{
+			Gte{"e": Expr("SELECT id FROM f WHERE g=?", 1)},
+			"e>=(SELECT id FROM f WHERE g=?)",
+			[]interface{}{1},
 		},
 		{
 			Between{"d", 0, 2},
@@ -101,6 +161,61 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			In("a", []int8{}),
+			"0=1",
+			[]interface{}{},
+		},
+		{
+			In("a", []int16{}),
+			"0=1",
+			[]interface{}{},
+		},
+		{
+			In("a", []int32{}),
+			"0=1",
+			[]interface{}{},
+		},
+		{
+			In("a", []int64{}),
+			"0=1",
+			[]interface{}{},
+		},
+		{
+			In("a", []uint{}),
+			"0=1",
+			[]interface{}{},
+		},
+		{
+			In("a", []uint8{}),
+			"0=1",
+			[]interface{}{},
+		},
+		{
+			In("a", []uint16{}),
+			"0=1",
+			[]interface{}{},
+		},
+		{
+			In("a", []uint32{}),
+			"0=1",
+			[]interface{}{},
+		},
+		{
+			In("a", []uint64{}),
+			"0=1",
+			[]interface{}{},
+		},
+		{
+			In("a", []interface{}{1, 2, 3}).And(Eq{"b": "c"}),
+			"a IN (?,?,?) AND b=?",
+			[]interface{}{1, 2, 3, "c"},
+		},
+		{
+			In("a", Select("id").From("b").Where(Eq{"c": 1})),
+			"a IN (SELECT id FROM b WHERE c=?)",
+			[]interface{}{1},
+		},
+		{
 			NotIn("a", Expr("select id from x where name > ?", "b")),
 			"a NOT IN (select id from x where name > ?)",
 			[]interface{}{"b"},
@@ -111,9 +226,69 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			NotIn("a", []int8{}),
+			"0=0",
+			[]interface{}{},
+		},
+		{
+			NotIn("a", []int16{}),
+			"0=0",
+			[]interface{}{},
+		},
+		{
+			NotIn("a", []int32{}),
+			"0=0",
+			[]interface{}{},
+		},
+		{
+			NotIn("a", []int64{}),
+			"0=0",
+			[]interface{}{},
+		},
+		{
+			NotIn("a", []uint{}),
+			"0=0",
+			[]interface{}{},
+		},
+		{
+			NotIn("a", []uint8{}),
+			"0=0",
+			[]interface{}{},
+		},
+		{
+			NotIn("a", []uint16{}),
+			"0=0",
+			[]interface{}{},
+		},
+		{
+			NotIn("a", []uint32{}),
+			"0=0",
+			[]interface{}{},
+		},
+		{
+			NotIn("a", []uint64{}),
+			"0=0",
+			[]interface{}{},
+		},
+		{
+			NotIn("a", []interface{}{1, 2, 3}).And(Eq{"b": "c"}),
+			"a NOT IN (?,?,?) AND b=?",
+			[]interface{}{1, 2, 3, "c"},
+		},
+		{
+			NotIn("a", Select("id").From("b").Where(Eq{"c": 1})),
+			"a NOT IN (SELECT id FROM b WHERE c=?)",
+			[]interface{}{1},
+		},
+		{
 			Or(Eq{"a": 1, "b": 2}, Eq{"c": 3, "d": 4}),
 			"(a=? AND b=?) OR (c=? AND d=?)",
 			[]interface{}{1, 2, 3, 4},
+		},
+		{
+			Not{Eq{"a": 1, "b": 2}},
+			"NOT (a=? AND b=?)",
+			[]interface{}{1, 2},
 		},
 	}
 
