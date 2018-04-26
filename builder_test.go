@@ -110,12 +110,11 @@ func TestBuilderCond(t *testing.T) {
 			"0=0",
 			[]interface{}{},
 		},
-		// FIXME: since map will not guarantee the sequence, this may be failed random
-		/*{
+		{
 			Or(Eq{"a": 1, "b": 2}, Eq{"c": 3, "d": 4}),
 			"(a=? AND b=?) OR (c=? AND d=?)",
 			[]interface{}{1, 2, 3, 4},
-		},*/
+		},
 	}
 
 	for _, k := range cases {
@@ -208,14 +207,14 @@ func TestSubquery(t *testing.T) {
 	subb := Select("id").From("table_b").Where(Eq{"b": "a"})
 	b := Select("a, b").From("table_a").Where(
 		Eq{
-			"id":   23,
 			"b_id": subb,
+			"id":   23,
 		},
 	)
 	sql, args, err := b.ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT a, b FROM table_a WHERE id=? AND b_id=(SELECT id FROM table_b WHERE b=?)", sql)
-	assert.EqualValues(t, []interface{}{23, "a"}, args)
+	assert.EqualValues(t, "SELECT a, b FROM table_a WHERE b_id=(SELECT id FROM table_b WHERE b=?) AND id=?", sql)
+	assert.EqualValues(t, []interface{}{"a", 23}, args)
 }
 
 // https://github.com/go-xorm/xorm/issues/820
