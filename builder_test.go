@@ -129,6 +129,18 @@ func TestBuilderCond(t *testing.T) {
 		}
 		fmt.Println(sql)
 
+		for i := 0; i < 10; i++ {
+			sql2, _, err := ToSQL(k.cond)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if sql2 != sql {
+				t.Error("first ToSQL result", sql, "other ToSQL result", sql2)
+				return
+			}
+		}
+
 		if !(len(args) == 0 && len(k.args) == 0) {
 			if !reflect.DeepEqual(args, k.args) {
 				t.Error("want", k.args, "get", args)
