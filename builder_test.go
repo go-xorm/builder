@@ -6,7 +6,6 @@ package builder
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -161,9 +160,19 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			In("a", []int{1}),
+			"a IN (?)",
+			[]interface{}{1},
+		},
+		{
 			In("a", []int8{}),
 			"0=1",
 			[]interface{}{},
+		},
+		{
+			In("a", []int8{1}),
+			"a IN (?)",
+			[]interface{}{1},
 		},
 		{
 			In("a", []int16{}),
@@ -171,9 +180,19 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			In("a", []int16{1}),
+			"a IN (?)",
+			[]interface{}{1},
+		},
+		{
 			In("a", []int32{}),
 			"0=1",
 			[]interface{}{},
+		},
+		{
+			In("a", []int32{1}),
+			"a IN (?)",
+			[]interface{}{1},
 		},
 		{
 			In("a", []int64{}),
@@ -181,9 +200,19 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			In("a", []int64{1}),
+			"a IN (?)",
+			[]interface{}{1},
+		},
+		{
 			In("a", []uint{}),
 			"0=1",
 			[]interface{}{},
+		},
+		{
+			In("a", []uint{1}),
+			"a IN (?)",
+			[]interface{}{1},
 		},
 		{
 			In("a", []uint8{}),
@@ -191,9 +220,19 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			In("a", []uint8{1}),
+			"a IN (?)",
+			[]interface{}{1},
+		},
+		{
 			In("a", []uint16{}),
 			"0=1",
 			[]interface{}{},
+		},
+		{
+			In("a", []uint16{1}),
+			"a IN (?)",
+			[]interface{}{1},
 		},
 		{
 			In("a", []uint32{}),
@@ -201,9 +240,19 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			In("a", []uint32{1}),
+			"a IN (?)",
+			[]interface{}{1},
+		},
+		{
 			In("a", []uint64{}),
 			"0=1",
 			[]interface{}{},
+		},
+		{
+			In("a", []uint64{1}),
+			"a IN (?)",
+			[]interface{}{1},
 		},
 		{
 			In("a", []interface{}{1, 2, 3}).And(Eq{"b": "c"}),
@@ -226,9 +275,19 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			NotIn("a", []int{1}),
+			"a NOT IN (?)",
+			[]interface{}{1},
+		},
+		{
 			NotIn("a", []int8{}),
 			"0=0",
 			[]interface{}{},
+		},
+		{
+			NotIn("a", []int8{1}),
+			"a NOT IN (?)",
+			[]interface{}{1},
 		},
 		{
 			NotIn("a", []int16{}),
@@ -236,9 +295,19 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			NotIn("a", []int16{1}),
+			"a NOT IN (?)",
+			[]interface{}{1},
+		},
+		{
 			NotIn("a", []int32{}),
 			"0=0",
 			[]interface{}{},
+		},
+		{
+			NotIn("a", []int32{1}),
+			"a NOT IN (?)",
+			[]interface{}{1},
 		},
 		{
 			NotIn("a", []int64{}),
@@ -246,9 +315,19 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			NotIn("a", []int64{1}),
+			"a NOT IN (?)",
+			[]interface{}{1},
+		},
+		{
 			NotIn("a", []uint{}),
 			"0=0",
 			[]interface{}{},
+		},
+		{
+			NotIn("a", []uint{1}),
+			"a NOT IN (?)",
+			[]interface{}{1},
 		},
 		{
 			NotIn("a", []uint8{}),
@@ -256,9 +335,19 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			NotIn("a", []uint8{1}),
+			"a NOT IN (?)",
+			[]interface{}{1},
+		},
+		{
 			NotIn("a", []uint16{}),
 			"0=0",
 			[]interface{}{},
+		},
+		{
+			NotIn("a", []uint16{1}),
+			"a NOT IN (?)",
+			[]interface{}{1},
 		},
 		{
 			NotIn("a", []uint32{}),
@@ -266,9 +355,19 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{},
 		},
 		{
+			NotIn("a", []uint32{1}),
+			"a NOT IN (?)",
+			[]interface{}{1},
+		},
+		{
 			NotIn("a", []uint64{}),
 			"0=0",
 			[]interface{}{},
+		},
+		{
+			NotIn("a", []uint64{1}),
+			"a NOT IN (?)",
+			[]interface{}{1},
 		},
 		{
 			NotIn("a", []interface{}{1, 2, 3}).And(Eq{"b": "c"}),
@@ -294,99 +393,63 @@ func TestBuilderCond(t *testing.T) {
 
 	for _, k := range cases {
 		sql, args, err := ToSQL(k.cond)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		if sql != k.sql {
-			t.Error("want", k.sql, "get", sql)
-			return
-		}
-		fmt.Println(sql)
+		assert.NoError(t, err)
+		assert.EqualValues(t, k.sql, sql)
 
 		for i := 0; i < 10; i++ {
 			sql2, _, err := ToSQL(k.cond)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			if sql2 != sql {
-				t.Error("first ToSQL result", sql, "other ToSQL result", sql2)
-				return
-			}
+			assert.NoError(t, err)
+			assert.EqualValues(t, sql, sql2)
 		}
 
-		if !(len(args) == 0 && len(k.args) == 0) {
-			if !reflect.DeepEqual(args, k.args) {
-				t.Error("want", k.args, "get", args)
-				return
+		assert.EqualValues(t, len(args), len(k.args))
+
+		if len(args) > 0 {
+			for i := 0; i < len(args); i++ {
+				assert.EqualValues(t, k.args[i], args[i])
 			}
 		}
-		fmt.Println(args)
 	}
 }
 
 func TestBuilderSelect(t *testing.T) {
 	sql, args, err := Select("c, d").From("table1").ToSQL()
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	fmt.Println(sql, args)
 
 	sql, args, err = Select("c, d").From("table1").Where(Eq{"a": 1}).ToSQL()
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NoError(t, err)
 	fmt.Println(sql, args)
 
 	sql, args, err = Select("c, d").From("table1").LeftJoin("table2", Eq{"table1.id": 1}.And(Lt{"table2.id": 3})).
 		RightJoin("table3", "table2.id = table3.tid").Where(Eq{"a": 1}).ToSQL()
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NoError(t, err)
 	fmt.Println(sql, args)
 }
 
 func TestBuilderInsert(t *testing.T) {
 	sql, args, err := Insert(Eq{"c": 1, "d": 2}).Into("table1").ToSQL()
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NoError(t, err)
 	fmt.Println(sql, args)
 }
 
 func TestBuilderUpdate(t *testing.T) {
 	sql, args, err := Update(Eq{"a": 2}).From("table1").Where(Eq{"a": 1}).ToSQL()
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NoError(t, err)
 	fmt.Println(sql, args)
 
 	sql, args, err = Update(Eq{"a": 2, "b": Incr(1)}).From("table2").Where(Eq{"a": 1}).ToSQL()
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NoError(t, err)
 	fmt.Println(sql, args)
 
 	sql, args, err = Update(Eq{"a": 2, "b": Incr(1), "c": Decr(1), "d": Expr("select count(*) from table2")}).From("table2").Where(Eq{"a": 1}).ToSQL()
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NoError(t, err)
 	fmt.Println(sql, args)
 }
 
 func TestBuilderDelete(t *testing.T) {
 	sql, args, err := Delete(Eq{"a": 1}).From("table1").ToSQL()
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	assert.NoError(t, err)
 	fmt.Println(sql, args)
 }
 
