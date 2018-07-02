@@ -412,21 +412,6 @@ func TestBuilderCond(t *testing.T) {
 	}
 }
 
-func TestBuilderSelect(t *testing.T) {
-	sql, args, err := Select("c, d").From("table1").ToSQL()
-	assert.NoError(t, err)
-	fmt.Println(sql, args)
-
-	sql, args, err = Select("c, d").From("table1").Where(Eq{"a": 1}).ToSQL()
-	assert.NoError(t, err)
-	fmt.Println(sql, args)
-
-	sql, args, err = Select("c, d").From("table1").LeftJoin("table2", Eq{"table1.id": 1}.And(Lt{"table2.id": 3})).
-		RightJoin("table3", "table2.id = table3.tid").Where(Eq{"a": 1}).ToSQL()
-	assert.NoError(t, err)
-	fmt.Println(sql, args)
-}
-
 func TestBuilderInsert(t *testing.T) {
 	sql, args, err := Insert(Eq{"c": 1, "d": 2}).Into("table1").ToSQL()
 	assert.NoError(t, err)
