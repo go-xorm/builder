@@ -16,12 +16,18 @@ const (
 	insertType               // insert
 	updateType               // update
 	deleteType               // delete
+	unionType                // union
 )
 
 type join struct {
 	joinType  string
 	joinTable string
 	joinCond  Cond
+}
+
+type union struct {
+	unionType string
+	builder   *Builder
 }
 
 // Builder describes a SQL statement
@@ -31,6 +37,7 @@ type Builder struct {
 	cond      Cond
 	selects   []string
 	joins     []join
+	unions    []union
 	inserts   Eq
 	updates   []Eq
 	orderBy   string
@@ -85,7 +92,7 @@ func (b *Builder) Into(tableName string) *Builder {
 	return b
 }
 
-// Join sets join table and contions
+// Join sets join table and conditions
 func (b *Builder) Join(joinType, joinTable string, joinCond interface{}) *Builder {
 	switch joinCond.(type) {
 	case Cond:
@@ -95,6 +102,32 @@ func (b *Builder) Join(joinType, joinTable string, joinCond interface{}) *Builde
 	}
 
 	return b
+}
+
+// Union sets union conditions
+func (b *Builder) Union(unionTp string, unionCond interface{}) *Builder {
+	var builder *Builder
+	if b.optype != unionType {
+		builder = &Builder{cond: NewCond()}
+		builder.optype = unionType
+
+		currentUnions := b.unions
+		b.unions = nil
+
+		builder.unions = append(builder.unions, union{"", b})
+		builder.unions = append(builder.unions, currentUnions...)
+	} else {
+		builder = b
+	}
+
+	switch unionCond.(type) {
+	case *Builder:
+		builder.unions = append(builder.unions, union{unionTp, unionCond.(*Builder)})
+	case string:
+		builder.unions = append(builder.unions, union{unionTp, &Builder{cond: Expr(unionCond.(string))}})
+	}
+
+	return builder
 }
 
 // InnerJoin sets inner join
@@ -175,6 +208,8 @@ func (b *Builder) WriteTo(w Writer) error {
 		return b.updateWriteTo(w)
 	case deleteType:
 		return b.deleteWriteTo(w)
+	case unionType:
+		return b.unionWriteTo(w)
 	}
 
 	return ErrNotSupportType
