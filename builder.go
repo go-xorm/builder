@@ -105,26 +105,23 @@ func (b *Builder) Join(joinType, joinTable string, joinCond interface{}) *Builde
 }
 
 // Union sets union conditions
-func (b *Builder) Union(unionTp string, unionCond interface{}) *Builder {
+func (b *Builder) Union(unionTp string, unionCond *Builder) *Builder {
 	var builder *Builder
 	if b.optype != unionType {
 		builder = &Builder{cond: NewCond()}
 		builder.optype = unionType
 
 		currentUnions := b.unions
+		// erase sub unions (actually append to new Builder.unions)
 		b.unions = nil
 
-		builder.unions = append(builder.unions, union{"", b})
-		builder.unions = append(builder.unions, currentUnions...)
+		builder.unions = append(append(builder.unions, union{"", b}), currentUnions...)
 	} else {
 		builder = b
 	}
 
-	switch unionCond.(type) {
-	case *Builder:
-		builder.unions = append(builder.unions, union{unionTp, unionCond.(*Builder)})
-	case string:
-		builder.unions = append(builder.unions, union{unionTp, &Builder{cond: Expr(unionCond.(string))}})
+	if unionCond != nil {
+		builder.unions = append(builder.unions, union{unionTp, unionCond})
 	}
 
 	return builder
