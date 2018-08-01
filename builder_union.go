@@ -7,6 +7,7 @@ package builder
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 func (b *Builder) unionWriteTo(w Writer) error {
@@ -20,7 +21,7 @@ func (b *Builder) unionWriteTo(w Writer) error {
 			}
 		} else {
 			if idx != 0 {
-				fmt.Fprint(w, fmt.Sprintf(" union %v ", v.unionType))
+				fmt.Fprint(w, fmt.Sprintf(" UNION %v ", strings.ToUpper(v.unionType)))
 			}
 			fmt.Fprint(w, "(")
 			if err := v.builder.selectWriteTo(w); err != nil {
