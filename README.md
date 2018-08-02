@@ -36,6 +36,16 @@ sql, args, err := Update(Eq{"a": 2}).From("table1").Where(Eq{"a": 1}).ToSQL()
 sql, args, err := Delete(Eq{"a": 1}).From("table1").ToSQL()
 ```
 
+# Union
+
+```Go
+sql, args, err := Select("*").From("a").Where(Eq{"status": "1"}).
+		Union("all", Select("*").From("a").Where(Eq{"status": "2"})).
+		Union("distinct", Select("*").From("a").Where(Eq{"status": "3"})).
+		Union("", Select("*").From("a").Where(Eq{"status": "4"})).
+		ToSQL()
+```
+
 # Conditions
 
 * `Eq` is a redefine of a map, you can give one or more conditions to `Eq`
