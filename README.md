@@ -12,16 +12,23 @@ Make sure you have installed Go 1.1+ and then:
 # Insert
 
 ```Go
-sql, args, err := Insert(Eq{"c": 1, "d": 2}).Into("table1").ToSQL()
+sql, args, err := builder.Insert(Eq{"c": 1, "d": 2}).Into("table1").ToSQL()
 ```
 
 # Select
 
 ```Go
+// Simple Query
 sql, args, err := Select("c, d").From("table1").Where(Eq{"a": 1}).ToSQL()
-
+// With join
 sql, args, err = Select("c, d").From("table1").LeftJoin("table2", Eq{"table1.id": 1}.And(Lt{"table2.id": 3})).
 		RightJoin("table3", "table2.id = table3.tid").Where(Eq{"a": 1}).ToSQL()
+// From sub query
+sql, args, err := Select("sub.id").From("sub", Select("c").From("table1").Where(Eq{"a": 1})).Where(Eq{"b": 1}).ToSQL()
+// From union query
+sql, args, err = Select("sub.id").From("sub",
+		Select("id").From("table1").Where(Eq{"a": 1}).
+			Union("all", Select("id").From("table1").Where(Eq{"a": 2}))).Where(Eq{"b": 1}).ToSQL()
 ```
 
 # Update
