@@ -41,3 +41,24 @@ func TestBuilderSelectOrderBy(t *testing.T) {
 	assert.EqualValues(t, 0, len(args))
 	fmt.Println(sql, args)
 }
+
+func TestBuilder_From(t *testing.T) {
+	// from sub
+	sql, args, err := Select("sub.id").
+		From("sub",
+			Select("c").From("table1").Where(Eq{"a": 1})).
+		Where(Eq{"b": 1}).ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, 2, len(args))
+	fmt.Println(sql, args)
+
+	// from union
+	sql, args, err = Select("sub.id").
+		From("sub",
+			Select("c").From("table1").Where(Eq{"a": 1}).
+				Union("all", Select("c").From("table1").Where(Eq{"a": 2}))).
+		Where(Eq{"b": 1}).ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, 3, len(args))
+	fmt.Println(sql, args)
+}
