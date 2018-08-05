@@ -63,4 +63,9 @@ func TestBuilder_From(t *testing.T) {
 	assert.NoError(t, err)
 	assert.EqualValues(t, 3, len(args))
 	fmt.Println(sql, args)
+
+	// will raise error
+	sql, args, err = Select("c").From("table1", Insert(Eq{"a": 1}).From("table1")).ToSQL()
+	assert.Error(t, err)
+	fmt.Println(err)
 }

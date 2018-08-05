@@ -39,7 +39,7 @@ func (b *Builder) selectWriteTo(w Writer) error {
 			return err
 		}
 	} else {
-		switch b.optype {
+		switch b.subQuery.optype {
 		case selectType, unionType:
 			fmt.Fprint(w, " FROM (")
 			if err := b.subQuery.WriteTo(w); err != nil {
