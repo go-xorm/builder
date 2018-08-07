@@ -23,6 +23,7 @@ jobs:
 
       # specify any bash command here prefixed with `run: `
       - run: go get -u github.com/golang/lint/golint
+      - run: go get -u github.com/stretchr/testify/assert
       - run: golint ./...
       - run: go test -v -race -coverprofile=coverage.txt -covermode=atomic
       - run: bash <(curl -s https://codecov.io/bash)
