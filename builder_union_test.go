@@ -18,11 +18,7 @@ func TestBuilder_Union(t *testing.T) {
 		Union("", Select("*").From("t2").Where(Eq{"status": "3"})).
 		ToSQL()
 	assert.NoError(t, err)
-	fmt.Println(sql, args)
-
-	sql, args, err = Select("*").From("t1").Where(Eq{"status": "1"}).
-		Union("all", Select("*").From("t2").Where(Eq{"status": "2"})).ToSQL()
-	assert.NoError(t, err)
+	assert.EqualValues(t, 4, len(args))
 	fmt.Println(sql, args)
 
 	// will raise error
@@ -35,17 +31,20 @@ func TestBuilder_Union(t *testing.T) {
 	sql, args, err = Select("*").From("t1").Where(Eq{"status": "1"}).
 		Union("all", Select("*").From("t2").Where(Eq{"status": "2"})).
 		Select("*").From("t2").Where(Eq{"status": "3"}).ToSQL()
+	assert.NoError(t, err)
 	fmt.Println(sql, args)
 
 	// will be overwrote by DELETE op
 	sql, args, err = Select("*").From("t1").Where(Eq{"status": "1"}).
 		Union("all", Select("*").From("t2").Where(Eq{"status": "2"})).
 		Delete(Eq{"status": "1"}).From("t2").ToSQL()
+	assert.NoError(t, err)
 	fmt.Println(sql, args)
 
-	// will be overwrote by Insert op
+	// will be overwrote by INSERT op
 	sql, args, err = Select("*").From("t1").Where(Eq{"status": "1"}).
 		Union("all", Select("*").From("t2").Where(Eq{"status": "2"})).
 		Insert(Eq{"status": "1"}).From("t2").ToSQL()
+	assert.NoError(t, err)
 	fmt.Println(sql, args)
 }
