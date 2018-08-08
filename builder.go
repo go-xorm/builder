@@ -6,8 +6,6 @@ package builder
 
 import (
 	"fmt"
-
-	"github.com/go-xorm/core"
 )
 
 type optype byte
@@ -172,19 +170,19 @@ func (b *Builder) Limit(style, pk string, limitN int, offset ...int) *Builder {
 }
 
 func (b *Builder) MySQLLimit(limitN int, offset ...int) *Builder {
-	return b.Limit(core.MYSQL, "", limitN, offset...)
+	return b.Limit(MYSQL, "", limitN, offset...)
 }
 
 func (b *Builder) SQLLiteLimit(limitN int, offset ...int) *Builder {
-	return b.Limit(core.SQLITE, "", limitN, offset...)
+	return b.Limit(SQLITE, "", limitN, offset...)
 }
 
 func (b *Builder) MsSQLLimit(pk string, limitN int, offset ...int) *Builder {
-	return b.Limit(core.MSSQL, pk, limitN, offset...)
+	return b.Limit(MSSQL, pk, limitN, offset...)
 }
 
 func (b *Builder) OracleLimit(limitN int, offset ...int) *Builder {
-	return b.Limit(core.ORACLE, "", limitN, offset...)
+	return b.Limit(ORACLE, "", limitN, offset...)
 }
 
 // InnerJoin sets inner join
