@@ -11,24 +11,39 @@ import (
 )
 
 func (b *Builder) unionWriteTo(w Writer) error {
-	for idx, v := range b.unions {
-		if v.builder.optype != selectType {
+	for idx, u := range b.unions {
+		current := u.builder
+		if current.optype != selectType {
 			return errors.New("UNION is only allowed among SELECT operations")
 		}
+
 		if len(b.unions) == 1 {
-			if err := v.builder.selectWriteTo(w); err != nil {
+			if err := current.selectWriteTo(w); err != nil {
 				return err
 			}
 		} else {
 			if idx != 0 {
-				fmt.Fprint(w, fmt.Sprintf(" UNION %v ", strings.ToUpper(v.unionType)))
+				fmt.Fprint(w, fmt.Sprintf(" UNION %v ", strings.ToUpper(u.unionType)))
 			}
 			fmt.Fprint(w, "(")
-			if err := v.builder.selectWriteTo(w); err != nil {
-				return err
+
+			if current.limitation != nil {
+				tw := NewWriter()
+				if err := current.selectWriteTo(tw); err != nil {
+					return err
+				}
+
+				fmt.Fprintf(w, tw.writer.String())
+				w.(*BytesWriter).args = append(w.(*BytesWriter).args, tw.args...)
+			} else {
+				if err := current.selectWriteTo(w); err != nil {
+					return err
+				}
 			}
+
 			fmt.Fprint(w, ")")
 		}
 	}
+
 	return nil
 }

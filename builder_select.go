@@ -10,7 +10,7 @@ import (
 )
 
 func (b *Builder) selectWriteTo(w Writer) error {
-	if len(b.tableName) <= 0 {
+	if !b.isNested && len(b.tableName) <= 0 {
 		return errors.New("no table indicated")
 	}
 
@@ -45,7 +45,12 @@ func (b *Builder) selectWriteTo(w Writer) error {
 			if err := b.subQuery.WriteTo(w); err != nil {
 				return err
 			}
-			fmt.Fprintf(w, ") AS %v", b.tableName)
+
+			if len(b.tableName) == 0 {
+				fmt.Fprintf(w, ")")
+			} else {
+				fmt.Fprintf(w, ") %v", b.tableName)
+			}
 		default:
 			return errors.New("SubQuery is limited in SELECT and UNION")
 		}
@@ -87,6 +92,10 @@ func (b *Builder) selectWriteTo(w Writer) error {
 		if _, err := fmt.Fprint(w, " ORDER BY ", b.orderBy); err != nil {
 			return err
 		}
+	}
+
+	if err := b.limitWriteTo(w); err != nil {
+		return err
 	}
 
 	return nil
