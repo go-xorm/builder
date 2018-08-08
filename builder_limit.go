@@ -1,11 +1,13 @@
+// Copyright 2018 The Xorm Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package builder
 
 import (
+	"errors"
 	"fmt"
 	"strings"
-
-	"github.com/go-xorm/core"
-	"github.com/pkg/errors"
 )
 
 func (b *Builder) limitWriteTo(w Writer) error {
@@ -16,7 +18,7 @@ func (b *Builder) limitWriteTo(w Writer) error {
 	if b.limitation != nil {
 		limit := b.limitation
 		if limit.offset < 0 || limit.limitN <= 0 {
-			return errors.New("Unexpected offset/limitN, set a negative one?")
+			return errors.New("unexpected offset/limitN")
 		}
 
 		selects := b.selects
@@ -30,7 +32,7 @@ func (b *Builder) limitWriteTo(w Writer) error {
 		var final *Builder
 
 		switch strings.ToLower(strings.TrimSpace(limit.style)) {
-		case core.ORACLE:
+		case ORACLE:
 			b.selects = append(selects, "ROWNUM RN")
 			if limit.offset == 0 {
 				final = Select(selects...).From("at", b).
@@ -48,7 +50,7 @@ func (b *Builder) limitWriteTo(w Writer) error {
 			}
 
 			return final.WriteTo(ow)
-		case core.SQLITE, core.MYSQL, core.POSTGRES:
+		case SQLITE, MYSQL, POSTGRES:
 			b.WriteTo(ow)
 
 			if limit.offset == 0 {
@@ -56,7 +58,7 @@ func (b *Builder) limitWriteTo(w Writer) error {
 			} else {
 				fmt.Fprintf(ow, " LIMIT %v OFFSET %v", limit.limitN, limit.offset)
 			}
-		case core.MSSQL:
+		case MSSQL:
 			if limit.offset == 0 {
 				if len(selects) == 0 {
 					selects = append(selects, "*")

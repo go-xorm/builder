@@ -21,6 +21,14 @@ const (
 	unionType                // union
 )
 
+const (
+	POSTGRES = "postgres"
+	SQLITE   = "sqlite3"
+	MYSQL    = "mysql"
+	MSSQL    = "mssql"
+	ORACLE   = "oracle"
+)
+
 type join struct {
 	joinType  string
 	joinTable string
