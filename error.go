@@ -15,4 +15,6 @@ var (
 	ErrNoInConditions = errors.New("No IN conditions")
 	// ErrNeedMoreArguments need more arguments
 	ErrNeedMoreArguments = errors.New("Need more sql arguments")
+	// ErrNoTableName no table name
+	ErrNoTableName = errors.New("No table indicated")
 )
