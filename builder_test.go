@@ -418,20 +418,6 @@ func TestBuilderInsert(t *testing.T) {
 	fmt.Println(sql, args)
 }
 
-func TestBuilderUpdate(t *testing.T) {
-	sql, args, err := Update(Eq{"a": 2}).From("table1").Where(Eq{"a": 1}).ToSQL()
-	assert.NoError(t, err)
-	fmt.Println(sql, args)
-
-	sql, args, err = Update(Eq{"a": 2, "b": Incr(1)}).From("table2").Where(Eq{"a": 1}).ToSQL()
-	assert.NoError(t, err)
-	fmt.Println(sql, args)
-
-	sql, args, err = Update(Eq{"a": 2, "b": Incr(1), "c": Decr(1), "d": Expr("select count(*) from table2")}).From("table2").Where(Eq{"a": 1}).ToSQL()
-	assert.NoError(t, err)
-	fmt.Println(sql, args)
-}
-
 func TestSubquery(t *testing.T) {
 	subb := Select("id").From("table_b").Where(Eq{"b": "a"})
 	b := Select("a, b").From("table_a").Where(

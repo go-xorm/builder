@@ -42,30 +42,6 @@ type Builder struct {
 	having    string
 }
 
-// Select creates a select Builder
-func Select(cols ...string) *Builder {
-	builder := &Builder{cond: NewCond()}
-	return builder.Select(cols...)
-}
-
-// Insert creates an insert Builder
-func Insert(eq Eq) *Builder {
-	builder := &Builder{cond: NewCond()}
-	return builder.Insert(eq)
-}
-
-// Update creates an update Builder
-func Update(updates ...Eq) *Builder {
-	builder := &Builder{cond: NewCond()}
-	return builder.Update(updates...)
-}
-
-// Delete creates a delete Builder
-func Delete(conds ...Cond) *Builder {
-	builder := &Builder{cond: NewCond()}
-	return builder.Delete(conds...)
-}
-
 // Where sets where SQL
 func (b *Builder) Where(cond Cond) *Builder {
 	b.cond = b.cond.And(cond)
@@ -182,7 +158,12 @@ func (b *Builder) Insert(eq Eq) *Builder {
 
 // Update sets update SQL
 func (b *Builder) Update(updates ...Eq) *Builder {
-	b.updates = updates
+	b.updates = make([]Eq, 0, len(updates))
+	for _, update := range updates {
+		if update.IsValid() {
+			b.updates = append(b.updates, update)
+		}
+	}
 	b.optype = updateType
 	return b
 }

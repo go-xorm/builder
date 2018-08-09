@@ -17,4 +17,6 @@ var (
 	ErrNeedMoreArguments = errors.New("Need more sql arguments")
 	// ErrNoTableName no table name
 	ErrNoTableName = errors.New("No table indicated")
+	// ErrNoColumnToUpdate no column to update
+	ErrNoColumnToUpdate = errors.New("No column to be update")
 )
