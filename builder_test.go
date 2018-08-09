@@ -451,6 +451,13 @@ func TestExprCond(t *testing.T) {
 	b := Select("id").From("table1").Where(expr{sql: "a=? OR b=?", args: []interface{}{1, 2}}).Where(Or(Eq{"c": 3}, Eq{"d": 4}))
 	sql, args, err := b.ToSQL()
 	assert.NoError(t, err)
+	assert.EqualValues(t, "table1", b.TableName())
 	assert.EqualValues(t, "SELECT id FROM table1 WHERE (a=? OR b=?) AND (c=? OR d=?)", sql)
 	assert.EqualValues(t, []interface{}{1, 2, 3, 4}, args)
+}
+
+func TestBuilderToBindedSQL(t *testing.T) {
+	newSQL, err := Select("id").From("table").Where(In("a", 1, 2)).ToBindedSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT id FROM table WHERE a IN (1,2)", newSQL)
 }
