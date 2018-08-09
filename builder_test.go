@@ -432,12 +432,6 @@ func TestBuilderUpdate(t *testing.T) {
 	fmt.Println(sql, args)
 }
 
-func TestBuilderDelete(t *testing.T) {
-	sql, args, err := Delete(Eq{"a": 1}).From("table1").ToSQL()
-	assert.NoError(t, err)
-	fmt.Println(sql, args)
-}
-
 func TestSubquery(t *testing.T) {
 	subb := Select("id").From("table_b").Where(Eq{"b": "a"})
 	b := Select("a, b").From("table_a").Where(
