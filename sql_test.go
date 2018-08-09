@@ -35,6 +35,10 @@ func TestBindedSQLConverter(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualValues(t, ErrNeedMoreArguments, err)
 
+	newSQL, err = ToBindedSQL(Select("id").From("table").Where(In("a", 1, 2)))
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT id FROM table WHERE a IN (1,2)", newSQL)
+
 	newSQL, err = ToBindedSQL(1)
 	assert.Error(t, err)
 	assert.EqualValues(t, ErrNotSupportType, err)

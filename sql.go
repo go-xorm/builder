@@ -92,8 +92,8 @@ func noSQLQuoteNeeded(a interface{}) bool {
 // ConvertToBindedSQL will convert SQL and args to a binded SQL
 func ConvertToBindedSQL(sql string, args []interface{}) (string, error) {
 	buf := StringBuilder{}
-	var j, start = 0, 0
-	for i := 0; i < len(sql); i++ {
+	var i, j, start int
+	for ; i < len(sql); i++ {
 		if sql[i] == '?' {
 			_, err := buf.WriteString(sql[start:i])
 			if err != nil {
@@ -116,14 +116,18 @@ func ConvertToBindedSQL(sql string, args []interface{}) (string, error) {
 			j = j + 1
 		}
 	}
+	_, err := buf.WriteString(sql[start:])
+	if err != nil {
+		return "", err
+	}
 	return buf.String(), nil
 }
 
 // ConvertPlaceholder replaces ? to $1, $2 ... or :1, :2 ... according prefix
 func ConvertPlaceholder(sql, prefix string) (string, error) {
 	buf := StringBuilder{}
-	var j, start = 0, 0
-	for i := 0; i < len(sql); i++ {
+	var i, j, start int
+	for ; i < len(sql); i++ {
 		if sql[i] == '?' {
 			_, err := buf.WriteString(sql[start:i])
 			if err != nil {
@@ -142,6 +146,10 @@ func ConvertPlaceholder(sql, prefix string) (string, error) {
 				return "", err
 			}
 		}
+	}
+	_, err := buf.WriteString(sql[start:])
+	if err != nil {
+		return "", err
 	}
 	return buf.String(), nil
 }
