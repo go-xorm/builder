@@ -460,18 +460,3 @@ func TestExprCond(t *testing.T) {
 	assert.EqualValues(t, "SELECT id FROM table1 WHERE (a=? OR b=?) AND (c=? OR d=?)", sql)
 	assert.EqualValues(t, []interface{}{1, 2, 3, 4}, args)
 }
-
-const placeholderConverterSQL = "SELECT a, b FROM table_a WHERE b_id=(SELECT id FROM table_b WHERE b=?) AND id=? AND c=? AND d=? AND e=? AND f=?"
-const placeholderConvertedSQL = "SELECT a, b FROM table_a WHERE b_id=(SELECT id FROM table_b WHERE b=$1) AND id=$2 AND c=$3 AND d=$4 AND e=$5 AND f=$6"
-
-func TestPlaceholderConverter(t *testing.T) {
-	newSQL, err := ConvertPlaceholder(placeholderConverterSQL, "$")
-	assert.NoError(t, err)
-	assert.EqualValues(t, placeholderConvertedSQL, newSQL)
-}
-
-func BenchmarkPlaceholderConverter(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		ConvertPlaceholder(placeholderConverterSQL, "$")
-	}
-}
