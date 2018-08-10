@@ -43,4 +43,10 @@ func TestBuilderUpdate(t *testing.T) {
 	sql, args, err = Update(Eq{}).From("table1").Where(Eq{"a": 1}).ToSQL()
 	assert.Error(t, err)
 	assert.EqualValues(t, ErrNoColumnToUpdate, err)
+
+	var builder = Builder{cond: NewCond()}
+	sql, args, err = builder.Update(Eq{"a": 2, "b": 1}).From("table1").Where(Eq{"a": 1}).ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "UPDATE table1 SET a=?,b=? WHERE a=?", sql)
+	assert.EqualValues(t, []interface{}{2, 1, 1}, args)
 }
