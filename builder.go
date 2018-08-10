@@ -41,14 +41,14 @@ type union struct {
 type limit struct {
 	limitN int
 	offset int
-	style  string
-	pk     string // Indicate PK when perform a LIMIT action in mssql. Use full name to avoid ambiguity
 }
 
 // Builder describes a SQL statement
 type Builder struct {
 	optype
+	dialect    string
 	tableName  string
+	pk         []string
 	subQuery   *Builder
 	cond       Cond
 	selects    []string
@@ -61,6 +61,12 @@ type Builder struct {
 	groupBy    string
 	having     string
 	isNested   bool
+}
+
+// Dialect sets the db dialect of Builder.
+func Dialect(dialect string) *Builder {
+	builder := &Builder{cond: NewCond(), dialect: dialect}
+	return builder
 }
 
 // Select creates a select Builder
@@ -104,9 +110,18 @@ func (b *Builder) From(tableName string, subQuery ...*Builder) *Builder {
 	return b
 }
 
-// SetNestedFlag set the nested flag. If turn this on, current builder would accept empty table name when building SQL
+// PK sets the pk(s) of table
+// Usually this indicates PK(s) when performing a LIMIT operation in mssql(especially in LIMIT n,m).
+// Use full name to avoid ambiguity
+func (b *Builder) PK(pk ...string) *Builder {
+	b.pk = pk
+
+	return b
+}
+
+// NestedFlag set the nested flag. If turn this on, current builder would accept empty table name when building SQL
 // and this builder would also be treated as a nested query at the same time.
-func (b *Builder) SetNestedFlag(isNested bool) *Builder {
+func (b *Builder) NestedFlag(isNested bool) *Builder {
 	b.isNested = isNested
 
 	return b
@@ -141,10 +156,15 @@ func (b *Builder) Union(unionTp string, unionCond *Builder) *Builder {
 	if b.optype != unionType {
 		builder = &Builder{cond: NewCond()}
 		builder.optype = unionType
+		builder.dialect = b.dialect
 
 		currentUnions := b.unions
 		// erase sub unions (actually append to new Builder.unions)
 		b.unions = nil
+
+		for e := range currentUnions {
+			currentUnions[e].builder.dialect = b.dialect
+		}
 
 		builder.unions = append(append(builder.unions, union{"", b}), currentUnions...)
 	} else {
@@ -152,6 +172,7 @@ func (b *Builder) Union(unionTp string, unionCond *Builder) *Builder {
 	}
 
 	if unionCond != nil {
+		unionCond.dialect = builder.dialect
 		builder.unions = append(builder.unions, union{unionTp, unionCond})
 	}
 
@@ -159,30 +180,14 @@ func (b *Builder) Union(unionTp string, unionCond *Builder) *Builder {
 }
 
 // Limit sets limitN condition
-func (b *Builder) Limit(style, pk string, limitN int, offset ...int) *Builder {
-	b.limitation = &limit{style: style, limitN: limitN, pk: pk}
+func (b *Builder) Limit(limitN int, offset ...int) *Builder {
+	b.limitation = &limit{limitN: limitN}
 
 	if len(offset) > 0 {
 		b.limitation.offset = offset[0]
 	}
 
 	return b
-}
-
-func (b *Builder) MySQLLimit(limitN int, offset ...int) *Builder {
-	return b.Limit(MYSQL, "", limitN, offset...)
-}
-
-func (b *Builder) SQLLiteLimit(limitN int, offset ...int) *Builder {
-	return b.Limit(SQLITE, "", limitN, offset...)
-}
-
-func (b *Builder) MsSQLLimit(pk string, limitN int, offset ...int) *Builder {
-	return b.Limit(MSSQL, pk, limitN, offset...)
-}
-
-func (b *Builder) OracleLimit(limitN int, offset ...int) *Builder {
-	return b.Limit(ORACLE, "", limitN, offset...)
 }
 
 // InnerJoin sets inner join
