@@ -94,8 +94,11 @@ func (b *Builder) selectWriteTo(w Writer) error {
 		}
 	}
 
-	if err := b.limitWriteTo(w); err != nil {
-		return err
+	if b.limitation != nil {
+		if err := b.limitWriteTo(w); err != nil {
+			return err
+		}
+
 	}
 
 	return nil
