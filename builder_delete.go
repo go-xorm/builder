@@ -8,6 +8,12 @@ import (
 	"fmt"
 )
 
+// Delete creates a delete Builder
+func Delete(conds ...Cond) *Builder {
+	builder := &Builder{cond: NewCond()}
+	return builder.Delete(conds...)
+}
+
 func (b *Builder) deleteWriteTo(w Writer) error {
 	if len(b.tableName) <= 0 {
 		return ErrNoTableName
