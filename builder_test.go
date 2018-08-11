@@ -418,26 +418,6 @@ func TestBuilderInsert(t *testing.T) {
 	fmt.Println(sql, args)
 }
 
-func TestBuilderUpdate(t *testing.T) {
-	sql, args, err := Update(Eq{"a": 2}).From("table1").Where(Eq{"a": 1}).ToSQL()
-	assert.NoError(t, err)
-	fmt.Println(sql, args)
-
-	sql, args, err = Update(Eq{"a": 2, "b": Incr(1)}).From("table2").Where(Eq{"a": 1}).ToSQL()
-	assert.NoError(t, err)
-	fmt.Println(sql, args)
-
-	sql, args, err = Update(Eq{"a": 2, "b": Incr(1), "c": Decr(1), "d": Expr("select count(*) from table2")}).From("table2").Where(Eq{"a": 1}).ToSQL()
-	assert.NoError(t, err)
-	fmt.Println(sql, args)
-}
-
-func TestBuilderDelete(t *testing.T) {
-	sql, args, err := Delete(Eq{"a": 1}).From("table1").ToSQL()
-	assert.NoError(t, err)
-	fmt.Println(sql, args)
-}
-
 func TestSubquery(t *testing.T) {
 	subb := Select("id").From("table_b").Where(Eq{"b": "a"})
 	b := Select("a, b").From("table_a").Where(
@@ -457,21 +437,13 @@ func TestExprCond(t *testing.T) {
 	b := Select("id").From("table1").Where(expr{sql: "a=? OR b=?", args: []interface{}{1, 2}}).Where(Or(Eq{"c": 3}, Eq{"d": 4}))
 	sql, args, err := b.ToSQL()
 	assert.NoError(t, err)
+	assert.EqualValues(t, "table1", b.TableName())
 	assert.EqualValues(t, "SELECT id FROM table1 WHERE (a=? OR b=?) AND (c=? OR d=?)", sql)
 	assert.EqualValues(t, []interface{}{1, 2, 3, 4}, args)
 }
 
-const placeholderConverterSQL = "SELECT a, b FROM table_a WHERE b_id=(SELECT id FROM table_b WHERE b=?) AND id=? AND c=? AND d=? AND e=? AND f=?"
-const placeholderConvertedSQL = "SELECT a, b FROM table_a WHERE b_id=(SELECT id FROM table_b WHERE b=$1) AND id=$2 AND c=$3 AND d=$4 AND e=$5 AND f=$6"
-
-func TestPlaceholderConverter(t *testing.T) {
-	newSQL, err := ConvertPlaceholder(placeholderConverterSQL, "$")
+func TestBuilderToBindedSQL(t *testing.T) {
+	newSQL, err := Select("id").From("table").Where(In("a", 1, 2)).ToBindedSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, placeholderConvertedSQL, newSQL)
-}
-
-func BenchmarkPlaceholderConverter(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		ConvertPlaceholder(placeholderConverterSQL, "$")
-	}
+	assert.EqualValues(t, "SELECT id FROM table WHERE a IN (1,2)", newSQL)
 }
