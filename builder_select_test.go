@@ -178,9 +178,9 @@ func TestBuilder_Limit(t *testing.T) {
 	// union with limit -- MsSQL style
 	sql, args, err = Dialect(MSSQL).Select("a", "b", "c").From("table1").
 		PK("id1").Where(Eq{"a": 1}).OrderBy("a ASC").Limit(5, 6).Union("ALL",
-		Select("a", "b").From("table1").Where(Eq{"a": 2}).OrderBy("a DESC").Limit(10)).
+		Select("a", "b").From("table1").Where(Eq{"b": 2}).OrderBy("a DESC").Limit(10)).
 		OrderBy("b DESC").Limit(7).ToSQL()
 	assert.NoError(t, err)
-	// assert.EqualValues(t, 6, len(args))
+	assert.EqualValues(t, 4, len(args))
 	fmt.Println(sql, args)
 }

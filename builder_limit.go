@@ -14,28 +14,25 @@ func (b *Builder) limitWriteTo(w Writer) error {
 	if strings.TrimSpace(b.dialect) == "" {
 		return errors.New("field `dialect` must be set up when performing LIMIT, try use `Dialect(dbType)` at first")
 	}
-	if !(b.optype == selectType || b.optype == unionType) {
-		return errors.New("LIMIT operation is limited in SELECT and UNION")
-	}
 
 	if b.limitation != nil {
 		limit := b.limitation
 		if limit.offset < 0 || limit.limitN <= 0 {
 			return errors.New("unexpected offset/limitN")
 		}
-
-		selects := b.selects
 		// erase limit condition
 		b.limitation = nil
-		// flush writer, both buffer & args
 		ow := w.(*BytesWriter)
-		ow.writer.Reset()
-		ow.args = nil
 
 		var final *Builder
 
 		switch strings.ToLower(strings.TrimSpace(b.dialect)) {
 		case ORACLE:
+			// flush writer, both buffer & args
+			ow.writer.Reset()
+			ow.args = nil
+
+			selects := b.selects
 			b.selects = append(selects, "ROWNUM RN")
 			if limit.offset == 0 {
 				final = Dialect(b.dialect).Select(selects...).From("at", b).PK(b.pk...).
@@ -54,7 +51,10 @@ func (b *Builder) limitWriteTo(w Writer) error {
 
 			return final.WriteTo(ow)
 		case SQLITE, MYSQL, POSTGRES:
-			b.WriteTo(ow)
+			// if type UNION, we need to write previous content back to current writer
+			if b.optype == unionType {
+				b.WriteTo(ow)
+			}
 
 			if limit.offset == 0 {
 				fmt.Fprint(ow, " LIMIT ", limit.limitN)
@@ -62,6 +62,11 @@ func (b *Builder) limitWriteTo(w Writer) error {
 				fmt.Fprintf(ow, " LIMIT %v OFFSET %v", limit.limitN, limit.offset)
 			}
 		case MSSQL:
+			// flush writer, both buffer & args
+			ow.writer.Reset()
+			ow.args = nil
+
+			selects := b.selects
 			if limit.offset == 0 {
 				if len(selects) == 0 {
 					selects = append(selects, "*")
