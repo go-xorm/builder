@@ -150,6 +150,13 @@ func TestBuilder_Limit(t *testing.T) {
 	assert.EqualValues(t, 0, len(args))
 	fmt.Println(sql, args)
 
+	// simple with where -- MsSQL style
+	sql, args, err = Dialect(MSSQL).Select("a", "b", "c").PK("id").From("table1").
+		Where(Eq{"a": "3"}).OrderBy("a ASC").Limit(5, 10).ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, 3, len(args))
+	fmt.Println(sql, args)
+
 	// raise error
 	sql, args, err = Dialect(MSSQL).Select("a", "b", "c").From("table1").
 		OrderBy("a ASC").Limit(5, 10).ToSQL()
