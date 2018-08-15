@@ -99,7 +99,7 @@ func (b *Builder) limitWriteTo(w Writer) error {
 					final = Dialect(b.dialect).
 						Select(fmt.Sprintf("TOP %d %v", limit.limitN, strings.Join(selects, ","))).
 						From("", sub).PK(b.pk...).NestedFlag(true).
-						Where(b.cond.And(NotIn(column, sub)))
+						Where(NotIn(column, sub))
 				}
 			}
 

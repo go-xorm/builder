@@ -20,6 +20,12 @@ func (b *Builder) selectWriteTo(w Writer) error {
 		return errors.New("no table indicated")
 	}
 
+	// perform limit before writing to writer when b.dialect between ORACLE and MSSQL
+	// this avoid a duplicate writing problem in simple limit query
+	if b.limitation != nil && (b.dialect == ORACLE || b.dialect == MSSQL) {
+		return b.limitWriteTo(w)
+	}
+
 	if _, err := fmt.Fprint(w, "SELECT "); err != nil {
 		return err
 	}
