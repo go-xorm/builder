@@ -28,9 +28,11 @@ func (b *Builder) limitWriteTo(w Writer) error {
 
 		switch strings.ToLower(strings.TrimSpace(b.dialect)) {
 		case ORACLE:
-			// flush writer, both buffer & args
-			ow.writer.Reset()
-			ow.args = nil
+			if ow.writer.Len() > 0 {
+				// flush writer, both buffer & args
+				ow.writer.Reset()
+				ow.args = nil
+			}
 
 			selects := b.selects
 			b.selects = append(selects, "ROWNUM RN")
@@ -62,9 +64,11 @@ func (b *Builder) limitWriteTo(w Writer) error {
 				fmt.Fprintf(ow, " LIMIT %v OFFSET %v", limit.limitN, limit.offset)
 			}
 		case MSSQL:
-			// flush writer, both buffer & args
-			ow.writer.Reset()
-			ow.args = nil
+			if ow.writer.Len() > 0 {
+				// flush writer, both buffer & args
+				ow.writer.Reset()
+				ow.args = nil
+			}
 
 			selects := b.selects
 			if limit.offset == 0 {

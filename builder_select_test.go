@@ -6,6 +6,7 @@ package builder
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -202,4 +203,117 @@ func TestBuilder_Limit(t *testing.T) {
 	assert.EqualValues(t, "SELECT TOP 7 * FROM ((SELECT TOP 5 a,b,c FROM (SELECT TOP 11 a,b,c,id1 FROM (SELECT a,b,c,id1 FROM table1 WHERE a=? ORDER BY a ASC)) WHERE id1 NOT IN (SELECT TOP 11 a,b,c,id1 FROM (SELECT a,b,c,id1 FROM table1 WHERE a=? ORDER BY a ASC))) UNION ALL (SELECT TOP 10 a,b FROM (SELECT a,b FROM table1 WHERE b=? ORDER BY a DESC)))", sql)
 	assert.EqualValues(t, 3, len(args))
 	fmt.Println(sql, args)
+}
+
+func BenchmarkBuilder_Limit(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		builder := randQuery(rand.Intn(1000) >= 500, true)
+		b.StartTimer()
+
+		_, _, err := builder.ToSQL()
+		assert.NoError(b, err)
+	}
+}
+
+func TestRandQuery(t *testing.T) {
+	sql, args, err := randQuery(false, true).ToSQL()
+	assert.NoError(t, err)
+	fmt.Println(sql, args)
+
+	sql, args, err = randQuery(false, false).ToSQL()
+	assert.NoError(t, err)
+	fmt.Println(sql, args)
+
+	sql, args, err = randQuery(true, false).ToSQL()
+	assert.NoError(t, err)
+	fmt.Println(sql, args)
+
+	sql, args, err = randQuery(true, true).ToSQL()
+	assert.NoError(t, err)
+	fmt.Println(sql, args)
+}
+
+// randQuery Generate a basic query for benchmark test. But be careful it's not a executable SQL in real db.
+func randQuery(allowUnion, allowLimit bool) *Builder {
+	b := randSimpleQuery(allowLimit)
+	if allowUnion {
+		r := rand.Intn(3) + 1
+		for i := r; i < r; i++ {
+			b = b.Union("all", randSimpleQuery(allowLimit))
+		}
+	}
+
+	return b
+}
+
+func randSimpleQuery(allowLimit bool) *Builder {
+	b := Dialect(randDialect()).Select(randSelects()...).From(randTableName(0)).PK("id")
+	b = randJoin(b, 3)
+	b = b.Where(randCond(b.selects, 3))
+	if allowLimit {
+		b = randLimit(b)
+	}
+
+	return b
+}
+
+func randDialect() string {
+	dialects := []string{MYSQL, ORACLE, MSSQL, SQLITE, POSTGRES}
+
+	return dialects[rand.Intn(len(dialects))]
+}
+
+func randSelects() []string {
+	selects := []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"}
+
+	if rand.Intn(1000) > 900 {
+		return []string{"*"}
+	}
+
+	rdx := rand.Intn(len(selects) / 2)
+	return selects[rdx:]
+}
+
+func randTableName(offset int) string {
+	return fmt.Sprintf("table%v", rand.Intn(10)+offset)
+}
+
+func randJoin(b *Builder, lessThan int) *Builder {
+	if lessThan <= 0 {
+		return b
+	}
+
+	times := rand.Intn(lessThan)
+
+	for i := 0; i < times; i++ {
+		tableName := randTableName(i * 10)
+		b = b.Join("", tableName, fmt.Sprintf("%v.id = %v.id", b.TableName(), tableName))
+	}
+
+	return b
+}
+
+func randCond(selects []string, lessThan int) Cond {
+	if len(selects) <= 0 {
+		return nil
+	}
+
+	cond := NewCond()
+
+	times := rand.Intn(lessThan)
+	for i := 0; i < times; i++ {
+		cond = cond.And(Eq{selects[rand.Intn(len(selects))]: "expected"})
+	}
+
+	return cond
+}
+
+func randLimit(b *Builder) *Builder {
+	r := rand.Intn(1000) + 1
+	if r > 500 {
+		return b.Limit(r, 1000)
+	} else {
+		return b.Limit(r)
+	}
 }
