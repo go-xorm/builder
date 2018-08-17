@@ -205,10 +205,32 @@ func TestBuilder_Limit(t *testing.T) {
 	fmt.Println(sql, args)
 }
 
-func BenchmarkBuilder_Limit(b *testing.B) {
+func BenchmarkBuilder_LimitForOracle(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		b.StopTimer()
-		builder := randQuery(rand.Intn(1000) >= 500, true)
+		builder := randQuery(ORACLE, rand.Intn(1000) >= 500, true)
+		b.StartTimer()
+
+		_, _, err := builder.ToSQL()
+		assert.NoError(b, err)
+	}
+}
+
+func BenchmarkBuilder_LimitForMssql(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		builder := randQuery(ORACLE, rand.Intn(1000) >= 500, true)
+		b.StartTimer()
+
+		_, _, err := builder.ToSQL()
+		assert.NoError(b, err)
+	}
+}
+
+func BenchmarkBuilder_LimitForMysqlLike(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		builder := randQuery(MYSQL, rand.Intn(1000) >= 500, true)
 		b.StartTimer()
 
 		_, _, err := builder.ToSQL()
@@ -217,30 +239,31 @@ func BenchmarkBuilder_Limit(b *testing.B) {
 }
 
 func TestRandQuery(t *testing.T) {
-	sql, args, err := randQuery(false, true).ToSQL()
+	dialect := randDialect()
+	sql, args, err := randQuery(dialect, false, true).ToSQL()
 	assert.NoError(t, err)
 	fmt.Println(sql, args)
 
-	sql, args, err = randQuery(false, false).ToSQL()
+	sql, args, err = randQuery(dialect, false, false).ToSQL()
 	assert.NoError(t, err)
 	fmt.Println(sql, args)
 
-	sql, args, err = randQuery(true, false).ToSQL()
+	sql, args, err = randQuery(dialect, true, false).ToSQL()
 	assert.NoError(t, err)
 	fmt.Println(sql, args)
 
-	sql, args, err = randQuery(true, true).ToSQL()
+	sql, args, err = randQuery(dialect, true, true).ToSQL()
 	assert.NoError(t, err)
 	fmt.Println(sql, args)
 }
 
 // randQuery Generate a basic query for benchmark test. But be careful it's not a executable SQL in real db.
-func randQuery(allowUnion, allowLimit bool) *Builder {
-	b := randSimpleQuery(allowLimit)
+func randQuery(dialect string, allowUnion, allowLimit bool) *Builder {
+	b := randSimpleQuery(dialect, allowLimit)
 	if allowUnion {
 		r := rand.Intn(3) + 1
 		for i := r; i < r; i++ {
-			b = b.Union("all", randSimpleQuery(allowLimit))
+			b = b.Union("all", randSimpleQuery(dialect, allowLimit))
 		}
 	}
 
@@ -251,8 +274,8 @@ func randQuery(allowUnion, allowLimit bool) *Builder {
 	return b
 }
 
-func randSimpleQuery(allowLimit bool) *Builder {
-	b := Dialect(randDialect()).Select(randSelects()...).From(randTableName(0)).PK("id")
+func randSimpleQuery(dialect string, allowLimit bool) *Builder {
+	b := Dialect(dialect).Select(randSelects()...).From(randTableName(0)).PK("id")
 	b = randJoin(b, 3)
 	b = b.Where(randCond(b.selects, 3))
 	if allowLimit {
