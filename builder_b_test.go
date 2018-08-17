@@ -193,9 +193,9 @@ func randSelectByCondition(dialect string, rgc *randGenConf) *Builder {
 	if rgc.allowSubQuery {
 		cpRgc := *rgc
 		cpRgc.allowSubQuery = false
-		b = Dialect(dialect).Select(randSelects()...).From(randTableName(0), randQuery(dialect, &cpRgc)).PK("id")
+		b = Dialect(dialect).Select(randSelects()...).From(randTableName(0), randQuery(dialect, &cpRgc))
 	} else {
-		b = Dialect(dialect).Select(randSelects()...).From(randTableName(0)).PK("id")
+		b = Dialect(dialect).Select(randSelects()...).From(randTableName(0))
 	}
 	if rgc.allowJoin {
 		b = randJoin(b, 3)

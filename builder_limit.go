@@ -37,17 +37,19 @@ func (b *Builder) limitWriteTo(w Writer) error {
 			selects := b.selects
 			b.selects = append(selects, "ROWNUM RN")
 			if limit.offset == 0 {
-				final = Dialect(b.dialect).Select(selects...).From("at", b).PK(b.pk...).
-					Where(Lte{"at.ROWNUM": limit.limitN})
-			} else {
-				sub := Dialect(b.dialect).Select(append(selects, "RN")...).
-					From("at", b).PK(b.pk...).Where(Lte{"at.ROWNUM": limit.offset + limit.limitN})
-
 				if len(selects) == 0 {
-					return ErrNotSupportType
+					selects = append(selects, "*")
+				} else {
+					selects = append(selects)
 				}
 
-				final = Dialect(b.dialect).Select(selects...).From("att", sub).PK(b.pk...).
+				final = Dialect(b.dialect).Select(selects...).From("at", b).
+					Where(Lte{"at.ROWNUM": limit.limitN})
+			} else {
+				sub := Dialect(b.dialect).Select("*").
+					From("at", b).Where(Lte{"at.ROWNUM": limit.offset + limit.limitN})
+
+				final = Dialect(b.dialect).Select("*").From("att", sub).
 					Where(Gt{"att.RN": limit.offset})
 			}
 
@@ -78,33 +80,20 @@ func (b *Builder) limitWriteTo(w Writer) error {
 
 				final = Dialect(b.dialect).
 					Select(fmt.Sprintf("TOP %d %v", limit.limitN, strings.Join(selects, ","))).
-					From("", b).PK(b.pk...).NestedFlag(true)
+					From("at", b)
 			} else {
-				var column string
-				if len(b.pk) != 0 {
-					column = strings.TrimSpace(b.pk[0])
-					if column == "" {
-						return errors.New("please assign a PK for MsSQL LIMIT operation")
-					}
+				sub := Dialect(b.dialect).Select(
+					fmt.Sprintf("TOP %d %v,%v", limit.limitN+limit.offset,
+						strings.Join(selects, ","), "ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS RN")).
+					From(b.tableName).Where(b.cond)
+
+				if len(selects) == 0 {
+					return ErrNotSupportType
 				}
 
-				if column == "" {
-					return errors.New("please assign a PK for MsSQL LIMIT operation")
-				} else {
-					b.selects = append(b.selects, column)
-					sub := Dialect(b.dialect).Select(fmt.Sprintf("TOP %d %v", limit.limitN+limit.offset,
-						strings.Join(append(selects, column), ","))).From("", b).
-						PK(b.pk...).NestedFlag(true)
-
-					if len(selects) == 0 {
-						return ErrNotSupportType
-					}
-
-					final = Dialect(b.dialect).
-						Select(fmt.Sprintf("TOP %d %v", limit.limitN, strings.Join(selects, ","))).
-						From("", sub).PK(b.pk...).NestedFlag(true).
-						Where(NotIn(column, sub))
-				}
+				final = Dialect(b.dialect).Select(
+					fmt.Sprintf("TOP %d %v", limit.limitN, strings.Join(append(selects, "RN"), ","))).
+					From("at", sub).Where(Gt{"at.RN": limit.limitN})
 			}
 
 			return final.WriteTo(ow)

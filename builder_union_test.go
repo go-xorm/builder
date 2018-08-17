@@ -18,7 +18,7 @@ func TestBuilder_Union(t *testing.T) {
 		Union("", Select("*").From("t2").Where(Eq{"status": "3"})).
 		ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, 4, len(args))
+	assert.EqualValues(t, []interface{}{"1", "2", "3", "3"}, args)
 	fmt.Println(sql, args)
 
 	// will raise error

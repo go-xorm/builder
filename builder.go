@@ -44,7 +44,6 @@ type Builder struct {
 	optype
 	dialect    string
 	tableName  string
-	pk         []string
 	subQuery   *Builder
 	cond       Cond
 	selects    []string
@@ -56,7 +55,6 @@ type Builder struct {
 	orderBy    string
 	groupBy    string
 	having     string
-	isNested   bool
 }
 
 // Dialect sets the db dialect of Builder.
@@ -78,23 +76,6 @@ func (b *Builder) From(tableName string, subQuery ...*Builder) *Builder {
 	if len(subQuery) > 0 {
 		b.subQuery = subQuery[0]
 	}
-
-	return b
-}
-
-// PK sets the pk(s) of table
-// Usually this indicates PK(s) when performing a LIMIT operation in mssql(especially in LIMIT n,m).
-// Use full name to avoid ambiguity
-func (b *Builder) PK(pk ...string) *Builder {
-	b.pk = pk
-
-	return b
-}
-
-// NestedFlag set the nested flag. If turn this on, current builder would accept empty table name when building SQL
-// and this builder would also be treated as a nested query at the same time.
-func (b *Builder) NestedFlag(isNested bool) *Builder {
-	b.isNested = isNested
 
 	return b
 }

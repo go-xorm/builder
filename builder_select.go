@@ -16,7 +16,7 @@ func Select(cols ...string) *Builder {
 }
 
 func (b *Builder) selectWriteTo(w Writer) error {
-	if !b.isNested && len(b.tableName) <= 0 {
+	if len(b.tableName) <= 0 {
 		return errors.New("no table indicated")
 	}
 

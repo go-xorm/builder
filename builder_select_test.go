@@ -77,7 +77,7 @@ func TestBuilder_From(t *testing.T) {
 		Select("id").From("table1").Where(Eq{"a": 1})).Where(Eq{"b": 1}).ToSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT sub.id FROM (SELECT id FROM table1 WHERE a=?) sub WHERE b=?", sql)
-	assert.EqualValues(t, 2, len(args))
+	assert.EqualValues(t, []interface{}{1, 1}, args)
 
 	// from union
 	sql, args, err = Select("sub.id").From("sub",
@@ -85,7 +85,7 @@ func TestBuilder_From(t *testing.T) {
 			Union("all", Select("id").From("table1").Where(Eq{"a": 2}))).Where(Eq{"b": 1}).ToSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT sub.id FROM ((SELECT id FROM table1 WHERE a=?) UNION ALL (SELECT id FROM table1 WHERE a=?)) sub WHERE b=?", sql)
-	assert.EqualValues(t, 3, len(args))
+	assert.EqualValues(t, []interface{}{1, 2, 1}, args)
 
 	// will raise error
 	sql, args, err = Select("c").From("table1", Insert(Eq{"a": 1}).From("table1")).ToSQL()
@@ -98,29 +98,29 @@ func TestBuilder_Limit(t *testing.T) {
 	sql, args, err := Dialect(ORACLE).Select("a", "b", "c").From("table1").OrderBy("a ASC").
 		Limit(5, 10).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT a,b,c FROM (SELECT a,b,c,RN FROM (SELECT a,b,c,ROWNUM RN FROM table1 ORDER BY a ASC) at WHERE at.ROWNUM<=?) att WHERE att.RN>?", sql)
-	assert.EqualValues(t, 2, len(args))
+	assert.EqualValues(t, "SELECT * FROM (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 ORDER BY a ASC) at WHERE at.ROWNUM<=?) att WHERE att.RN>?", sql)
+	assert.EqualValues(t, []interface{}{15, 10}, args)
 
 	// simple with join -- OracleSQL style
 	sql, args, err = Dialect(ORACLE).Select("a", "b", "c").From("table1 t1").
 		InnerJoin("table2 t2", "t1.id = t2.ref_id").OrderBy("a ASC").Limit(5, 10).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT a,b,c FROM (SELECT a,b,c,RN FROM (SELECT a,b,c,ROWNUM RN FROM table1 t1 INNER JOIN table2 t2 ON t1.id = t2.ref_id ORDER BY a ASC) at WHERE at.ROWNUM<=?) att WHERE att.RN>?", sql)
-	assert.EqualValues(t, 2, len(args))
+	assert.EqualValues(t, "SELECT * FROM (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 t1 INNER JOIN table2 t2 ON t1.id = t2.ref_id ORDER BY a ASC) at WHERE at.ROWNUM<=?) att WHERE att.RN>?", sql)
+	assert.EqualValues(t, []interface{}{15, 10}, args)
 
 	// simple -- OracleSQL style
 	sql, args, err = Dialect(ORACLE).Select("a", "b", "c").From("table1").
 		OrderBy("a ASC").Limit(5).ToSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT a,b,c FROM (SELECT a,b,c,ROWNUM RN FROM table1 ORDER BY a ASC) at WHERE at.ROWNUM<=?", sql)
-	assert.EqualValues(t, 1, len(args))
+	assert.EqualValues(t, []interface{}{5}, args)
 
 	// simple with where -- OracleSQL style
 	sql, args, err = Dialect(ORACLE).Select("a", "b", "c").From("table1").Where(Eq{"f1": "v1", "f2": "v2"}).
 		OrderBy("a ASC").Limit(5, 10).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT a,b,c FROM (SELECT a,b,c,RN FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE f1=? AND f2=? ORDER BY a ASC) at WHERE at.ROWNUM<=?) att WHERE att.RN>?", sql)
-	assert.EqualValues(t, 4, len(args))
+	assert.EqualValues(t, "SELECT * FROM (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE f1=? AND f2=? ORDER BY a ASC) at WHERE at.ROWNUM<=?) att WHERE att.RN>?", sql)
+	assert.EqualValues(t, []interface{}{"v1", "v2", 15, 10}, args)
 
 	// simple -- MySQL/SQLite/PostgreSQL style
 	sql, args, err = Dialect(MYSQL).Select("a", "b", "c").From("table1").OrderBy("a ASC").
@@ -141,26 +141,21 @@ func TestBuilder_Limit(t *testing.T) {
 		Where(Eq{"f1": "v1", "f2": "v2"}).OrderBy("a ASC").Limit(5, 10).ToSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT a,b,c FROM table1 WHERE f1=? AND f2=? ORDER BY a ASC LIMIT 5 OFFSET 10", sql)
-	assert.EqualValues(t, 2, len(args))
+	assert.EqualValues(t, []interface{}{"v1", "v2"}, args)
 
 	// simple -- MsSQL style
-	sql, args, err = Dialect(MSSQL).Select("a", "b", "c").PK("id").From("table1").
-		OrderBy("a ASC").Limit(5, 10).ToSQL()
+	sql, args, err = Dialect(MSSQL).Select("a", "b", "c").From("table1").
+		OrderBy("a ASC").Limit(5).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT TOP 5 a,b,c FROM (SELECT TOP 15 a,b,c,id FROM (SELECT a,b,c,id FROM table1 ORDER BY a ASC)) WHERE id NOT IN (SELECT TOP 15 a,b,c,id FROM (SELECT a,b,c,id FROM table1 ORDER BY a ASC))", sql)
+	assert.EqualValues(t, "SELECT TOP 5 a,b,c FROM (SELECT a,b,c FROM table1 ORDER BY a ASC) at", sql)
 	assert.EqualValues(t, 0, len(args))
 
 	// simple with where -- MsSQL style
-	sql, args, err = Dialect(MSSQL).Select("a", "b", "c").PK("id").From("table1").
+	sql, args, err = Dialect(MSSQL).Select("a", "b", "c").From("table1").
 		Where(Eq{"a": "3"}).OrderBy("a ASC").Limit(5, 10).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT TOP 5 a,b,c FROM (SELECT TOP 15 a,b,c,id FROM (SELECT a,b,c,id FROM table1 WHERE a=? ORDER BY a ASC)) WHERE id NOT IN (SELECT TOP 15 a,b,c,id FROM (SELECT a,b,c,id FROM table1 WHERE a=? ORDER BY a ASC))", sql)
-	assert.EqualValues(t, 2, len(args))
-
-	// raise error
-	sql, args, err = Dialect(MSSQL).Select("a", "b", "c").From("table1").
-		OrderBy("a ASC").Limit(5, 10).ToSQL()
-	assert.Error(t, err)
+	assert.EqualValues(t, "SELECT TOP 5 a,b,c,RN FROM (SELECT TOP 15 a,b,c,ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS RN FROM table1 WHERE a=?) at WHERE at.RN>?", sql)
+	assert.EqualValues(t, []interface{}{"3", 5}, args)
 
 	// union with limit -- OracleSQL style
 	sql, args, err = Dialect(ORACLE).Select("a", "b", "c").From("table1").
@@ -168,9 +163,8 @@ func TestBuilder_Limit(t *testing.T) {
 		Select("a", "b", "c").From("table1").Where(Eq{"a": 2}).OrderBy("a DESC").Limit(10)).
 		Limit(3).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT * FROM ((SELECT a,b,c FROM (SELECT a,b,c,RN FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE a=? ORDER BY a ASC) at WHERE at.ROWNUM<=?) att WHERE att.RN>?) UNION ALL (SELECT a,b,c FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE a=? ORDER BY a DESC) at WHERE at.ROWNUM<=?)) at WHERE at.ROWNUM<=?", sql)
-	assert.EqualValues(t, 6, len(args))
-	assert.EqualValues(t, "[1 15 10 2 10 3]", fmt.Sprintf("%v", args))
+	assert.EqualValues(t, "SELECT * FROM ((SELECT * FROM (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE a=? ORDER BY a ASC) at WHERE at.ROWNUM<=?) att WHERE att.RN>?) UNION ALL (SELECT a,b,c FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE a=? ORDER BY a DESC) at WHERE at.ROWNUM<=?)) at WHERE at.ROWNUM<=?", sql)
+	assert.EqualValues(t, []interface{}{1, 15, 10, 2, 10, 3}, args)
 
 	// union -- MySQL/SQLite/PostgreSQL style
 	sql, args, err = Dialect(MYSQL).Select("a", "b", "c").From("table1").Where(Eq{"a": 1}).
@@ -179,14 +173,14 @@ func TestBuilder_Limit(t *testing.T) {
 		Limit(5, 10).ToSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "(SELECT a,b,c FROM table1 WHERE a=? ORDER BY a ASC LIMIT 5 OFFSET 9) UNION ALL (SELECT a,b,c FROM table1 WHERE a=? ORDER BY a DESC LIMIT 10) LIMIT 5 OFFSET 10", sql)
-	assert.EqualValues(t, 2, len(args))
+	assert.EqualValues(t, []interface{}{1, 2}, args)
 
 	// union with limit -- MsSQL style
 	sql, args, err = Dialect(MSSQL).Select("a", "b", "c").From("table1").
-		PK("id1").Where(Eq{"a": 1}).OrderBy("a ASC").Limit(5, 6).Union("ALL",
-		Select("a", "b").From("table1").Where(Eq{"b": 2}).OrderBy("a DESC").Limit(10)).
+		Where(Eq{"a": 1}).OrderBy("a ASC").Limit(5, 6).Union("ALL",
+		Select("a", "b", "c").From("table1").Where(Eq{"b": 2}).OrderBy("a DESC").Limit(10)).
 		OrderBy("b DESC").Limit(7).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT TOP 7 * FROM ((SELECT TOP 5 a,b,c FROM (SELECT TOP 11 a,b,c,id1 FROM (SELECT a,b,c,id1 FROM table1 WHERE a=? ORDER BY a ASC)) WHERE id1 NOT IN (SELECT TOP 11 a,b,c,id1 FROM (SELECT a,b,c,id1 FROM table1 WHERE a=? ORDER BY a ASC))) UNION ALL (SELECT TOP 10 a,b FROM (SELECT a,b FROM table1 WHERE b=? ORDER BY a DESC)))", sql)
-	assert.EqualValues(t, 3, len(args))
+	assert.EqualValues(t, "SELECT TOP 7 * FROM ((SELECT TOP 5 a,b,c,RN FROM (SELECT TOP 11 a,b,c,ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS RN FROM table1 WHERE a=?) at WHERE at.RN>?) UNION ALL (SELECT TOP 10 a,b,c FROM (SELECT a,b,c FROM table1 WHERE b=? ORDER BY a DESC) at)) at", sql)
+	assert.EqualValues(t, []interface{}{1, 5, 2}, args)
 }
