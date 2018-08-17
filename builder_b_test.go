@@ -7,7 +7,6 @@ import (
 )
 
 type randGenConf struct {
-	dialect       string
 	allowCond     bool
 	allowJoin     bool
 	allowLimit    bool
