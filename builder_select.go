@@ -16,8 +16,14 @@ func Select(cols ...string) *Builder {
 }
 
 func (b *Builder) selectWriteTo(w Writer) error {
-	if len(b.tableName) <= 0 {
+	if !b.isNested && len(b.tableName) <= 0 {
 		return errors.New("no table indicated")
+	}
+
+	// perform limit before writing to writer when b.dialect between ORACLE and MSSQL
+	// this avoid a duplicate writing problem in simple limit query
+	if b.limitation != nil && (b.dialect == ORACLE || b.dialect == MSSQL) {
+		return b.limitWriteTo(w)
 	}
 
 	if _, err := fmt.Fprint(w, "SELECT "); err != nil {
@@ -51,7 +57,12 @@ func (b *Builder) selectWriteTo(w Writer) error {
 			if err := b.subQuery.WriteTo(w); err != nil {
 				return err
 			}
-			fmt.Fprintf(w, ") AS %v", b.tableName)
+
+			if len(b.tableName) == 0 {
+				fmt.Fprintf(w, ")")
+			} else {
+				fmt.Fprintf(w, ") %v", b.tableName)
+			}
 		default:
 			return errors.New("SubQuery is limited in SELECT and UNION")
 		}
@@ -91,6 +102,12 @@ func (b *Builder) selectWriteTo(w Writer) error {
 
 	if len(b.orderBy) > 0 {
 		if _, err := fmt.Fprint(w, " ORDER BY ", b.orderBy); err != nil {
+			return err
+		}
+	}
+
+	if b.limitation != nil {
+		if err := b.limitWriteTo(w); err != nil {
 			return err
 		}
 	}
