@@ -244,6 +244,10 @@ func randQuery(allowUnion, allowLimit bool) *Builder {
 		}
 	}
 
+	if allowLimit {
+		b = randLimit(b)
+	}
+
 	return b
 }
 
