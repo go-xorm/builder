@@ -39,15 +39,13 @@ func (b *Builder) limitWriteTo(w Writer) error {
 			if limit.offset == 0 {
 				if len(selects) == 0 {
 					selects = append(selects, "*")
-				} else {
-					selects = append(selects)
 				}
 
-				final = Dialect(b.dialect).Select(selects...).From("at", b).
-					Where(Lte{"at.ROWNUM": limit.limitN})
+				final = Dialect(b.dialect).Select("*").From("at", b).
+					Where(Lte{"at.RN": limit.limitN})
 			} else {
 				sub := Dialect(b.dialect).Select("*").
-					From("at", b).Where(Lte{"at.ROWNUM": limit.offset + limit.limitN})
+					From("at", b).Where(Lte{"at.RN": limit.offset + limit.limitN})
 
 				final = Dialect(b.dialect).Select("*").From("att", sub).
 					Where(Gt{"att.RN": limit.offset})

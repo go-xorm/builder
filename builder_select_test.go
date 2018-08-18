@@ -98,29 +98,29 @@ func TestBuilder_Limit(t *testing.T) {
 	sql, args, err := Dialect(ORACLE).Select("a", "b", "c").From("table1").OrderBy("a ASC").
 		Limit(5, 10).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT * FROM (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 ORDER BY a ASC) at WHERE at.ROWNUM<=?) att WHERE att.RN>?", sql)
+	assert.EqualValues(t, "SELECT * FROM (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 ORDER BY a ASC) at WHERE at.RN<=?) att WHERE att.RN>?", sql)
 	assert.EqualValues(t, []interface{}{15, 10}, args)
 
 	// simple with join -- OracleSQL style
-	sql, args, err = Dialect(ORACLE).Select("a", "b", "c").From("table1 t1").
+	sql, args, err = Dialect(ORACLE).Select("a", "b", "c", "d").From("table1 t1").
 		InnerJoin("table2 t2", "t1.id = t2.ref_id").OrderBy("a ASC").Limit(5, 10).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT * FROM (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 t1 INNER JOIN table2 t2 ON t1.id = t2.ref_id ORDER BY a ASC) at WHERE at.ROWNUM<=?) att WHERE att.RN>?", sql)
+	assert.EqualValues(t, "SELECT * FROM (SELECT * FROM (SELECT a,b,c,d,ROWNUM RN FROM table1 t1 INNER JOIN table2 t2 ON t1.id = t2.ref_id ORDER BY a ASC) at WHERE at.RN<=?) att WHERE att.RN>?", sql)
 	assert.EqualValues(t, []interface{}{15, 10}, args)
 
 	// simple -- OracleSQL style
 	sql, args, err = Dialect(ORACLE).Select("a", "b", "c").From("table1").
 		OrderBy("a ASC").Limit(5).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT a,b,c FROM (SELECT a,b,c,ROWNUM RN FROM table1 ORDER BY a ASC) at WHERE at.ROWNUM<=?", sql)
+	assert.EqualValues(t, "SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 ORDER BY a ASC) at WHERE at.RN<=?", sql)
 	assert.EqualValues(t, []interface{}{5}, args)
 
 	// simple with where -- OracleSQL style
-	sql, args, err = Dialect(ORACLE).Select("a", "b", "c").From("table1").Where(Eq{"f1": "v1", "f2": "v2"}).
-		OrderBy("a ASC").Limit(5, 10).ToSQL()
+	sql, args, err = Dialect(ORACLE).Select("a", "b", "c").From("table1").Where(Eq{"a": "10", "b": "10"}).
+		OrderBy("a ASC").Limit(5, 1).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT * FROM (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE f1=? AND f2=? ORDER BY a ASC) at WHERE at.ROWNUM<=?) att WHERE att.RN>?", sql)
-	assert.EqualValues(t, []interface{}{"v1", "v2", 15, 10}, args)
+	assert.EqualValues(t, "SELECT * FROM (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE a=? AND b=? ORDER BY a ASC) at WHERE at.RN<=?) att WHERE att.RN>?", sql)
+	assert.EqualValues(t, []interface{}{"10", "10", 6, 1}, args)
 
 	// simple -- MySQL/SQLite/PostgreSQL style
 	sql, args, err = Dialect(MYSQL).Select("a", "b", "c").From("table1").OrderBy("a ASC").
@@ -159,12 +159,12 @@ func TestBuilder_Limit(t *testing.T) {
 
 	// union with limit -- OracleSQL style
 	sql, args, err = Dialect(ORACLE).Select("a", "b", "c").From("table1").
-		Where(Eq{"a": 1}).OrderBy("a ASC").Limit(5, 10).Union("ALL",
-		Select("a", "b", "c").From("table1").Where(Eq{"a": 2}).OrderBy("a DESC").Limit(10)).
+		Where(Neq{"a": "0"}).OrderBy("a ASC").Limit(5, 10).Union("ALL",
+		Select("a", "b", "c").From("table1").Where(Neq{"b": "48"}).OrderBy("a DESC").Limit(10)).
 		Limit(3).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT * FROM ((SELECT * FROM (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE a=? ORDER BY a ASC) at WHERE at.ROWNUM<=?) att WHERE att.RN>?) UNION ALL (SELECT a,b,c FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE a=? ORDER BY a DESC) at WHERE at.ROWNUM<=?)) at WHERE at.ROWNUM<=?", sql)
-	assert.EqualValues(t, []interface{}{1, 15, 10, 2, 10, 3}, args)
+	assert.EqualValues(t, "SELECT * FROM ((SELECT * FROM (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE a<>? ORDER BY a ASC) at WHERE at.RN<=?) att WHERE att.RN>?) UNION ALL (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE b<>? ORDER BY a DESC) at WHERE at.RN<=?)) at WHERE at.RN<=?", sql)
+	assert.EqualValues(t, []interface{}{"0", 15, 10, "48", 10, 3}, args)
 
 	// union -- MySQL/SQLite/PostgreSQL style
 	sql, args, err = Dialect(MYSQL).Select("a", "b", "c").From("table1").Where(Eq{"a": 1}).
