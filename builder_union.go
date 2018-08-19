@@ -32,25 +32,6 @@ func (b *Builder) unionWriteTo(w Writer) error {
 			}
 			fmt.Fprint(w, "(")
 
-			// switch b.dialect {
-			// case ORACLE, MSSQL:
-			// 	// if dialect is Oracle or Mssql, we need to make a copy of current context
-			// 	// coz the result of current will turn into a sub-query when building LIMIT query
-			// 	tw := NewWriter()
-			// 	if err := current.selectWriteTo(tw); err != nil {
-			// 		return err
-			// 	}
-			//
-			// 	fmt.Fprintf(w, tw.writer.String())
-			// 	w.(*BytesWriter).args = append(w.(*BytesWriter).args, tw.args...)
-			// case MYSQL, SQLITE, POSTGRES:
-			// 	if err := current.selectWriteTo(w); err != nil {
-			// 		return err
-			// 	}
-			// default:
-			// 	return ErrNotSupportType
-			// }
-
 			if err := current.selectWriteTo(w); err != nil {
 				return err
 			}
