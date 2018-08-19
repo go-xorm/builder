@@ -140,14 +140,15 @@ func BenchmarkUpdate(b *testing.B) {
 // randQuery Generate a basic query for benchmark test. But be careful it's not a executable SQL in real db.
 func randQuery(dialect string, rgc *randGenConf) *Builder {
 	b := randSelectByCondition(dialect, rgc)
-	if rgc.allowUnion && rand.Intn(1000) >= 500 {
+	isUnionized := rgc.allowUnion && rand.Intn(1000) >= 500
+	if isUnionized {
 		r := rand.Intn(3) + 1
 		for i := r; i < r; i++ {
 			b = b.Union("all", randSelectByCondition(dialect, rgc))
 		}
 	}
 
-	if rgc.allowLimit && rand.Intn(1000) >= 500 {
+	if isUnionized && rgc.allowLimit && rand.Intn(1000) >= 500 {
 		b = randLimit(b)
 	}
 

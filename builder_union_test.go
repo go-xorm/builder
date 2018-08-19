@@ -18,8 +18,16 @@ func TestBuilder_Union(t *testing.T) {
 		Union("", Select("*").From("t2").Where(Eq{"status": "3"})).
 		ToSQL()
 	assert.NoError(t, err)
+	assert.EqualValues(t, "(SELECT * FROM t1 WHERE status=?) UNION ALL (SELECT * FROM t2 WHERE status=?) UNION DISTINCT (SELECT * FROM t2 WHERE status=?) UNION  (SELECT * FROM t2 WHERE status=?)", sql)
 	assert.EqualValues(t, []interface{}{"1", "2", "3", "3"}, args)
-	fmt.Println(sql, args)
+
+	// will raise error
+	sql, args, err = Select("*").From("table1").Where(Eq{"a": "1"}).
+		Union("all", Select("*").From("table2").Where(Eq{"a": "2"})).
+		Where(Eq{"a": 2}).Limit(5, 10).
+		ToSQL()
+	assert.Error(t, err)
+	fmt.Println(err)
 
 	// will raise error
 	sql, args, err = Delete(Eq{"a": 1}).From("t1").

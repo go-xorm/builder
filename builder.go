@@ -110,6 +110,7 @@ func (b *Builder) Union(unionTp string, unionCond *Builder) *Builder {
 		builder = &Builder{cond: NewCond()}
 		builder.optype = unionType
 		builder.dialect = b.dialect
+		builder.selects = b.selects
 
 		currentUnions := b.unions
 		// erase sub unions (actually append to new Builder.unions)
@@ -227,10 +228,6 @@ func (b *Builder) WriteTo(w Writer) error {
 	case deleteType:
 		return b.deleteWriteTo(w)
 	case unionType:
-		if b.limitation != nil {
-			return b.limitWriteTo(w)
-		}
-
 		return b.unionWriteTo(w)
 	}
 

@@ -24,30 +24,32 @@ func (b *Builder) limitWriteTo(w Writer) error {
 		b.limitation = nil
 		ow := w.(*BytesWriter)
 
-		var final *Builder
-
 		switch strings.ToLower(strings.TrimSpace(b.dialect)) {
 		case ORACLE:
-			if ow.writer.Len() > 0 {
-				// flush writer, both buffer & args
-				ow.writer.Reset()
-				ow.args = nil
+			if len(b.selects) == 0 {
+				b.selects = append(b.selects, "*")
 			}
 
+			var final *Builder
 			selects := b.selects
 			b.selects = append(selects, "ROWNUM RN")
-			if limit.offset == 0 {
-				if len(selects) == 0 {
-					selects = append(selects, "*")
-				}
 
-				final = Dialect(b.dialect).Select("*").From("at", b).
+			var wb *Builder
+			if b.optype == unionType {
+				wb = Dialect(b.dialect).Select("at.*", "ROWNUM RN").
+					From("at", b)
+			} else {
+				wb = b
+			}
+
+			if limit.offset == 0 {
+				final = Dialect(b.dialect).Select(selects...).From("at", wb).
 					Where(Lte{"at.RN": limit.limitN})
 			} else {
 				sub := Dialect(b.dialect).Select("*").
 					From("at", b).Where(Lte{"at.RN": limit.offset + limit.limitN})
 
-				final = Dialect(b.dialect).Select("*").From("att", sub).
+				final = Dialect(b.dialect).Select(selects...).From("att", sub).
 					Where(Gt{"att.RN": limit.offset})
 			}
 
@@ -64,34 +66,27 @@ func (b *Builder) limitWriteTo(w Writer) error {
 				fmt.Fprintf(ow, " LIMIT %v OFFSET %v", limit.limitN, limit.offset)
 			}
 		case MSSQL:
-			if ow.writer.Len() > 0 {
-				// flush writer, both buffer & args
-				ow.writer.Reset()
-				ow.args = nil
+			if len(b.selects) == 0 {
+				b.selects = append(b.selects, "*")
 			}
 
+			var final *Builder
 			selects := b.selects
-			if limit.offset == 0 {
-				if len(selects) == 0 {
-					selects = append(selects, "*")
-				}
+			b.selects = append(append([]string{fmt.Sprintf("TOP %d %v", limit.limitN+limit.offset, b.selects[0])},
+				b.selects[1:]...), "ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS RN")
 
-				final = Dialect(b.dialect).
-					Select(fmt.Sprintf("TOP %d %v", limit.limitN, strings.Join(selects, ","))).
+			var wb *Builder
+			if b.optype == unionType {
+				wb = Dialect(b.dialect).Select("*", "ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS RN").
 					From("at", b)
 			} else {
-				sub := Dialect(b.dialect).Select(
-					fmt.Sprintf("TOP %d %v,%v", limit.limitN+limit.offset,
-						strings.Join(selects, ","), "ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS RN")).
-					From(b.tableName).Where(b.cond)
+				wb = b
+			}
 
-				if len(selects) == 0 {
-					return ErrNotSupportType
-				}
-
-				final = Dialect(b.dialect).Select(
-					fmt.Sprintf("TOP %d %v", limit.limitN, strings.Join(append(selects, "RN"), ","))).
-					From("at", sub).Where(Gt{"at.RN": limit.limitN})
+			if limit.offset == 0 {
+				final = Dialect(b.dialect).Select(selects...).From("at", wb)
+			} else {
+				final = Dialect(b.dialect).Select(selects...).From("at", wb).Where(Gt{"at.RN": limit.offset})
 			}
 
 			return final.WriteTo(ow)
