@@ -22,7 +22,7 @@ func condToSQL(cond Cond) (string, []interface{}, error) {
 	return w.writer.String(), w.args, nil
 }
 
-func condToBindedSQL(cond Cond) (string, error) {
+func condToBoundSQL(cond Cond) (string, error) {
 	if cond == nil || !cond.IsValid() {
 		return "", nil
 	}
@@ -31,10 +31,10 @@ func condToBindedSQL(cond Cond) (string, error) {
 	if err := cond.WriteTo(w); err != nil {
 		return "", err
 	}
-	return ConvertToBindedSQL(w.writer.String(), w.args)
+	return ConvertToBoundSQL(w.writer.String(), w.args)
 }
 
-// ToSQL convert a builder or condtions to SQL and args
+// ToSQL convert a builder or conditions to SQL and args
 func ToSQL(cond interface{}) (string, []interface{}, error) {
 	switch cond.(type) {
 	case Cond:
@@ -45,11 +45,11 @@ func ToSQL(cond interface{}) (string, []interface{}, error) {
 	return "", nil, ErrNotSupportType
 }
 
-// ToBindedSQL convert a builder or condtions to parameters binded SQL
-func ToBindedSQL(cond interface{}) (string, error) {
+// ToBoundSQL convert a builder or conditions to parameters bound SQL
+func ToBoundSQL(cond interface{}) (string, error) {
 	switch cond.(type) {
 	case Cond:
-		return condToBindedSQL(cond.(Cond))
+		return condToBoundSQL(cond.(Cond))
 	case *Builder:
 		return cond.(*Builder).ToBindedSQL()
 	}
@@ -89,8 +89,8 @@ func noSQLQuoteNeeded(a interface{}) bool {
 	return false
 }
 
-// ConvertToBindedSQL will convert SQL and args to a binded SQL
-func ConvertToBindedSQL(sql string, args []interface{}) (string, error) {
+// ConvertToBoundSQL will convert SQL and args to a bound SQL
+func ConvertToBoundSQL(sql string, args []interface{}) (string, error) {
 	buf := StringBuilder{}
 	var i, j, start int
 	for ; i < len(sql); i++ {

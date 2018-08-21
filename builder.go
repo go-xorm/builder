@@ -244,12 +244,12 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 	return w.writer.String(), w.args, nil
 }
 
-// ToBindedSQL
+// ToBoundSQL
 func (b *Builder) ToBindedSQL() (string, error) {
 	w := NewWriter()
 	if err := b.WriteTo(w); err != nil {
 		return "", err
 	}
 
-	return ConvertToBindedSQL(w.writer.String(), w.args)
+	return ConvertToBoundSQL(w.writer.String(), w.args)
 }

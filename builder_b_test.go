@@ -149,7 +149,7 @@ func randQuery(dialect string, rgc *randGenConf) *Builder {
 	}
 
 	if isUnionized && rgc.allowLimit && rand.Intn(1000) >= 500 {
-		b = randLimit(b)
+		b = randLimit(Dialect(dialect).Select().From("t", b))
 	}
 
 	return b
