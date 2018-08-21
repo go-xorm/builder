@@ -69,23 +69,23 @@ func TestBuilder_From(t *testing.T) {
 	// simple one
 	sql, args, err := Select("c").From("table1").ToSQL()
 	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT c FROM table1", sql)
 	assert.EqualValues(t, 0, len(args))
-	fmt.Println(sql, args)
 
 	// from sub
 	sql, args, err = Select("sub.id").From("sub",
 		Select("id").From("table1").Where(Eq{"a": 1})).Where(Eq{"b": 1}).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, 2, len(args))
-	fmt.Println(sql, args)
+	assert.EqualValues(t, "SELECT sub.id FROM (SELECT id FROM table1 WHERE a=?) sub WHERE b=?", sql)
+	assert.EqualValues(t, []interface{}{1, 1}, args)
 
 	// from union
 	sql, args, err = Select("sub.id").From("sub",
 		Select("id").From("table1").Where(Eq{"a": 1}).
 			Union("all", Select("id").From("table1").Where(Eq{"a": 2}))).Where(Eq{"b": 1}).ToSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, 3, len(args))
-	fmt.Println(sql, args)
+	assert.EqualValues(t, "SELECT sub.id FROM ((SELECT id FROM table1 WHERE a=?) UNION ALL (SELECT id FROM table1 WHERE a=?)) sub WHERE b=?", sql)
+	assert.EqualValues(t, []interface{}{1, 2, 1}, args)
 
 	// will raise error
 	sql, args, err = Select("c").From("table1", Insert(Eq{"a": 1}).From("table1")).ToSQL()

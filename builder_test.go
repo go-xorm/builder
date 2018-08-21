@@ -442,8 +442,8 @@ func TestExprCond(t *testing.T) {
 	assert.EqualValues(t, []interface{}{1, 2, 3, 4}, args)
 }
 
-func TestBuilderToBindedSQL(t *testing.T) {
-	newSQL, err := Select("id").From("table").Where(In("a", 1, 2)).ToBindedSQL()
+func TestBuilderToBoundSQL(t *testing.T) {
+	newSQL, err := Select("id").From("table").Where(In("a", 1, 2)).ToBoundSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT id FROM table WHERE a IN (1,2)", newSQL)
 }

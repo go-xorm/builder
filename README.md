@@ -29,6 +29,13 @@ sql, args, err := Select("sub.id").From("sub", Select("c").From("table1").Where(
 sql, args, err = Select("sub.id").From("sub",
 		Select("id").From("table1").Where(Eq{"a": 1}).
 			Union("all", Select("id").From("table1").Where(Eq{"a": 2}))).Where(Eq{"b": 1}).ToSQL()
+// With order by
+sql, args, err = Select("a", "b", "c").From("table1").Where(Eq{"f1": "v1", "f2": "v2"}).
+		OrderBy("a ASC").ToSQL()
+// With limit.
+// Be careful! You should set up specific dialect for builder before performing a query with LIMIT
+sql, args, err = Dialect(MYSQL).Select("a", "b", "c").From("table1").OrderBy("a ASC").
+		Limit(5, 10).ToSQL()
 ```
 
 # Update

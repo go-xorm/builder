@@ -15,6 +15,14 @@ const (
 	unionType                // union
 )
 
+const (
+	POSTGRES = "postgres"
+	SQLITE   = "sqlite3"
+	MYSQL    = "mysql"
+	MSSQL    = "mssql"
+	ORACLE   = "oracle"
+)
+
 type join struct {
 	joinType  string
 	joinTable string
@@ -26,20 +34,33 @@ type union struct {
 	builder   *Builder
 }
 
+type limit struct {
+	limitN int
+	offset int
+}
+
 // Builder describes a SQL statement
 type Builder struct {
 	optype
-	tableName string
-	subQuery  *Builder
-	cond      Cond
-	selects   []string
-	joins     []join
-	unions    []union
-	inserts   Eq
-	updates   []Eq
-	orderBy   string
-	groupBy   string
-	having    string
+	dialect    string
+	tableName  string
+	subQuery   *Builder
+	cond       Cond
+	selects    []string
+	joins      []join
+	unions     []union
+	limitation *limit
+	inserts    Eq
+	updates    []Eq
+	orderBy    string
+	groupBy    string
+	having     string
+}
+
+// Dialect sets the db dialect of Builder.
+func Dialect(dialect string) *Builder {
+	builder := &Builder{cond: NewCond(), dialect: dialect}
+	return builder
 }
 
 // Where sets where SQL
@@ -88,10 +109,16 @@ func (b *Builder) Union(unionTp string, unionCond *Builder) *Builder {
 	if b.optype != unionType {
 		builder = &Builder{cond: NewCond()}
 		builder.optype = unionType
+		builder.dialect = b.dialect
+		builder.selects = b.selects
 
 		currentUnions := b.unions
 		// erase sub unions (actually append to new Builder.unions)
 		b.unions = nil
+
+		for e := range currentUnions {
+			currentUnions[e].builder.dialect = b.dialect
+		}
 
 		builder.unions = append(append(builder.unions, union{"", b}), currentUnions...)
 	} else {
@@ -99,10 +126,22 @@ func (b *Builder) Union(unionTp string, unionCond *Builder) *Builder {
 	}
 
 	if unionCond != nil {
+		unionCond.dialect = builder.dialect
 		builder.unions = append(builder.unions, union{unionTp, unionCond})
 	}
 
 	return builder
+}
+
+// Limit sets limitN condition
+func (b *Builder) Limit(limitN int, offset ...int) *Builder {
+	b.limitation = &limit{limitN: limitN}
+
+	if len(offset) > 0 {
+		b.limitation.offset = offset[0]
+	}
+
+	return b
 }
 
 // InnerJoin sets inner join
@@ -205,12 +244,12 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 	return w.writer.String(), w.args, nil
 }
 
-// ToBindedSQL
-func (b *Builder) ToBindedSQL() (string, error) {
+// ToBoundSQL
+func (b *Builder) ToBoundSQL() (string, error) {
 	w := NewWriter()
 	if err := b.WriteTo(w); err != nil {
 		return "", err
 	}
 
-	return ConvertToBindedSQL(w.writer.String(), w.args)
+	return ConvertToBoundSQL(w.writer.String(), w.args)
 }

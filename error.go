@@ -19,4 +19,6 @@ var (
 	ErrNoTableName = errors.New("No table indicated")
 	// ErrNoColumnToUpdate no column to update
 	ErrNoColumnToUpdate = errors.New("No column to be update")
+	// ErrNotSupportDialectType not supported dialect type error
+	ErrNotSupportDialectType = errors.New("Not supported dialect type")
 )
