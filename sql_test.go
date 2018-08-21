@@ -116,7 +116,7 @@ func (f *fiddler) executableCheck(obj interface{}) error {
 	var err error
 	switch obj.(type) {
 	case *Builder:
-		sql, err = obj.(*Builder).ToBindedSQL()
+		sql, err = obj.(*Builder).ToBoundSQL()
 		if err != nil {
 			return err
 		}

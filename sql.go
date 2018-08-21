@@ -51,7 +51,7 @@ func ToBoundSQL(cond interface{}) (string, error) {
 	case Cond:
 		return condToBoundSQL(cond.(Cond))
 	case *Builder:
-		return cond.(*Builder).ToBindedSQL()
+		return cond.(*Builder).ToBoundSQL()
 	}
 	return "", ErrNotSupportType
 }

@@ -245,7 +245,7 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 }
 
 // ToBoundSQL
-func (b *Builder) ToBindedSQL() (string, error) {
+func (b *Builder) ToBoundSQL() (string, error) {
 	w := NewWriter()
 	if err := b.WriteTo(w); err != nil {
 		return "", err
