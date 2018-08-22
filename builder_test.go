@@ -5,7 +5,6 @@
 package builder
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -413,9 +412,17 @@ func TestBuilderCond(t *testing.T) {
 }
 
 func TestBuilderInsert(t *testing.T) {
-	sql, args, err := Insert(Eq{"c": 1, "d": 2}).Into("table1").ToSQL()
+	sql, err := Insert(Eq{"c": 1, "d": 2}).Into("table1").ToBoundSQL()
 	assert.NoError(t, err)
-	fmt.Println(sql, args)
+	assert.EqualValues(t, "INSERT INTO table1 (c,d) Values (1,2)", sql)
+
+	sql, err = Insert(Eq{"c": 1, "d": 2}).ToBoundSQL()
+	assert.Error(t, err)
+	assert.EqualValues(t, ErrNoTableName, err)
+
+	sql, err = Insert(Eq{}).Into("table1").ToBoundSQL()
+	assert.Error(t, err)
+	assert.EqualValues(t, ErrNoColumnToInsert, err)
 }
 
 func TestSubquery(t *testing.T) {
