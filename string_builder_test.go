@@ -23,6 +23,7 @@ func TestStringBuilderWriteByte(t *testing.T) {
 		_, err = b.WriteRune(c)
 		assert.NoError(t, err)
 	}
+	assert.EqualValues(t, 6, b.Len())
 	assert.EqualValues(t, content, b.String())
 
 	for i := 0; i < 100; i++ {

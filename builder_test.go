@@ -601,6 +601,10 @@ func TestBuilderInsert(t *testing.T) {
 	assert.NoError(t, err)
 	assert.EqualValues(t, "INSERT INTO table1 (c,d) Values (1,2)", sql)
 
+	sql, err = Insert(Eq{"c": 1, "d": Expr("SELECT b FROM t WHERE d=? LIMIT 1", 2)}).Into("table1").ToBoundSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "INSERT INTO table1 (c,d) Values (1,(SELECT b FROM t WHERE d=2 LIMIT 1))", sql)
+
 	sql, err = Insert(Eq{"c": 1, "d": 2}).ToBoundSQL()
 	assert.Error(t, err)
 	assert.EqualValues(t, ErrNoTableName, err)
@@ -645,6 +649,12 @@ func TestBuilder_From2(t *testing.T) {
 	sql, args, err := b.ToSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT id FROM table_b tb WHERE b=?", sql)
+	assert.EqualValues(t, []interface{}{"a"}, args)
+
+	b = Select().From("table_b", "tb").Where(Eq{"b": "a"})
+	sql, args, err = b.ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT * FROM table_b tb WHERE b=?", sql)
 	assert.EqualValues(t, []interface{}{"a"}, args)
 }
 
