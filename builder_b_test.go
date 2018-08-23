@@ -149,7 +149,7 @@ func randQuery(dialect string, rgc *randGenConf) *Builder {
 	}
 
 	if isUnionized && rgc.allowLimit && rand.Intn(1000) >= 500 {
-		b = randLimit(Dialect(dialect).Select().From("t", b))
+		b = randLimit(Dialect(dialect).Select().From(b, "t"))
 	}
 
 	return b
@@ -198,7 +198,7 @@ func randSelectByCondition(dialect string, rgc *randGenConf) *Builder {
 	if rgc.allowSubQuery {
 		cpRgc := *rgc
 		cpRgc.allowSubQuery = false
-		b = Dialect(dialect).Select(randSelects()...).From(randTableName(0), randQuery(dialect, &cpRgc))
+		b = Dialect(dialect).Select(randSelects()...).From(randQuery(dialect, &cpRgc), randTableName(0))
 	} else {
 		b = Dialect(dialect).Select(randSelects()...).From(randTableName(0))
 	}

@@ -43,6 +43,7 @@ type limit struct {
 type Builder struct {
 	optype
 	dialect    string
+	isNested   bool
 	tableName  string
 	subQuery   *Builder
 	cond       Cond
@@ -69,12 +70,23 @@ func (b *Builder) Where(cond Cond) *Builder {
 	return b
 }
 
-// From sets the name of table or the sub query's alias and itself
-func (b *Builder) From(tableName string, subQuery ...*Builder) *Builder {
-	b.tableName = tableName
+// From sets from subject(can be a table name in string or a builder pointer) and its alias
+func (b *Builder) From(subject interface{}, alias ...string) *Builder {
+	switch subject.(type) {
+	case *Builder:
+		b.subQuery = subject.(*Builder)
 
-	if len(subQuery) > 0 {
-		b.subQuery = subQuery[0]
+		if len(alias) > 0 {
+			b.tableName = alias[0]
+		} else {
+			b.isNested = true
+		}
+	case string:
+		b.tableName = subject.(string)
+
+		if len(alias) > 0 {
+			b.tableName = b.tableName + " " + alias[0]
+		}
 	}
 
 	return b

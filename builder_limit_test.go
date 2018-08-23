@@ -32,10 +32,10 @@ func TestBuilder_Limit4Mssql(t *testing.T) {
 	assert.NoError(t, f.executableCheck(sql))
 
 	// union with limit -- MsSQL style
-	sql, err = Dialect(MSSQL).Select("a", "b", "c").From("at",
+	sql, err = Dialect(MSSQL).Select("a", "b", "c").From(
 		Dialect(MSSQL).Select("a", "b", "c").From("table1").Where(Neq{"a": "1"}).
 			OrderBy("a ASC").Limit(5, 6).Union("ALL",
-			Select("a", "b", "c").From("table1").Where(Neq{"b": "2"}).OrderBy("a DESC").Limit(10))).
+			Select("a", "b", "c").From("table1").Where(Neq{"b": "2"}).OrderBy("a DESC").Limit(10)), "at").
 		OrderBy("b DESC").Limit(7, 9).ToBoundSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT a,b,c FROM (SELECT TOP 16 a,b,c,ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS RN FROM ((SELECT a,b,c FROM (SELECT TOP 11 a,b,c,ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS RN FROM table1 WHERE a<>'1' ORDER BY a ASC) at WHERE at.RN>6) UNION ALL (SELECT a,b,c FROM (SELECT TOP 10 a,b,c,ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS RN FROM table1 WHERE b<>'2' ORDER BY a DESC) at)) at ORDER BY b DESC) at WHERE at.RN>9", sql)
@@ -71,10 +71,10 @@ func TestBuilder_Limit4MysqlLike(t *testing.T) {
 	assert.NoError(t, f.executableCheck(sql))
 
 	// union -- MySQL/SQLite/PostgreSQL style
-	sql, err = Dialect(MYSQL).Select("a", "b", "c").From("at",
+	sql, err = Dialect(MYSQL).Select("a", "b", "c").From(
 		Dialect(MYSQL).Select("a", "b", "c").From("table1").Where(Eq{"a": "1"}).OrderBy("a ASC").
 			Limit(5, 9).Union("ALL",
-			Select("a", "b", "c").From("table1").Where(Eq{"a": "2"}).OrderBy("a DESC").Limit(10))).
+			Select("a", "b", "c").From("table1").Where(Eq{"a": "2"}).OrderBy("a DESC").Limit(10)), "at").
 		Limit(5, 10).ToBoundSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT a,b,c FROM ((SELECT a,b,c FROM table1 WHERE a='1' ORDER BY a ASC LIMIT 5 OFFSET 9) UNION ALL (SELECT a,b,c FROM table1 WHERE a='2' ORDER BY a DESC LIMIT 10)) at LIMIT 5 OFFSET 10", sql)
@@ -117,11 +117,11 @@ func TestBuilder_Limit4Oracle(t *testing.T) {
 	assert.NoError(t, f.executableCheck(sql))
 
 	// union with limit -- OracleSQL style
-	sql, err = Dialect(ORACLE).Select("a", "b", "c").From("at",
+	sql, err = Dialect(ORACLE).Select("a", "b", "c").From(
 		Dialect(ORACLE).Select("a", "b", "c").From("table1").
 			Where(Neq{"a": "0"}).OrderBy("a ASC").Limit(5, 10).Union("ALL",
 			Select("a", "b", "c").From("table1").Where(Neq{"b": "48"}).
-				OrderBy("a DESC").Limit(10))).
+				OrderBy("a DESC").Limit(10)), "at").
 		Limit(3).ToBoundSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT a,b,c FROM (SELECT a,b,c,ROWNUM RN FROM ((SELECT a,b,c FROM (SELECT * FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE a<>'0' ORDER BY a ASC) at WHERE at.RN<=15) att WHERE att.RN>10) UNION ALL (SELECT a,b,c FROM (SELECT a,b,c,ROWNUM RN FROM table1 WHERE b<>'48' ORDER BY a DESC) at WHERE at.RN<=10)) at) at WHERE at.RN<=3", sql)
