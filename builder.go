@@ -64,6 +64,31 @@ func Dialect(dialect string) *Builder {
 	return builder
 }
 
+// MySQL is shortcut of Dialect(MySQL)
+func MySQL() *Builder {
+	return Dialect(MYSQL)
+}
+
+// MsSQL is shortcut of Dialect(MsSQL)
+func MsSQL() *Builder {
+	return Dialect(MSSQL)
+}
+
+// Oracle is shortcut of Dialect(Oracle)
+func Oracle() *Builder {
+	return Dialect(ORACLE)
+}
+
+// Postgres is shortcut of Dialect(Postgres)
+func Postgres() *Builder {
+	return Dialect(POSTGRES)
+}
+
+// SQLite is shortcut of Dialect(SQLITE)
+func SQLite() *Builder {
+	return Dialect(SQLITE)
+}
+
 // Where sets where SQL
 func (b *Builder) Where(cond Cond) *Builder {
 	if b.cond.IsValid() {
@@ -256,8 +281,15 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 	if err := b.WriteTo(w); err != nil {
 		return "", nil, err
 	}
+	var sql = w.writer.String()
+	if b.dialect == POSTGRES {
+		var err error
+		if sql, err = ConvertPlaceholder(sql, "$"); err != nil {
+			return "", nil, err
+		}
+	}
 
-	return w.writer.String(), w.args, nil
+	return sql, w.args, nil
 }
 
 // ToBoundSQL
