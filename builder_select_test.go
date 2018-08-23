@@ -77,23 +77,46 @@ func TestBuilder_From(t *testing.T) {
 	assert.EqualValues(t, "SELECT c FROM table1", sql)
 	assert.EqualValues(t, 0, len(args))
 
-	// from sub
-	sql, args, err = Select("sub.id").From("sub",
-		Select("id").From("table1").Where(Eq{"a": 1})).Where(Eq{"b": 1}).ToSQL()
+	// from sub with alias
+	sql, args, err = Select("sub.id").From(Select("id").From("table1").Where(Eq{"a": 1}),
+		"sub").Where(Eq{"b": 1}).ToSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT sub.id FROM (SELECT id FROM table1 WHERE a=?) sub WHERE b=?", sql)
 	assert.EqualValues(t, []interface{}{1, 1}, args)
 
-	// from union
-	sql, args, err = Select("sub.id").From("sub",
-		Select("id").From("table1").Where(Eq{"a": 1}).
-			Union("all", Select("id").From("table1").Where(Eq{"a": 2}))).Where(Eq{"b": 1}).ToSQL()
+	// from sub without alias and with conditions
+	sql, args, err = Select("sub.id").From(Select("id").From("table1").Where(Eq{"a": 1})).Where(Eq{"b": 1}).ToSQL()
+	assert.Error(t, err)
+	assert.EqualValues(t, ErrUnnamedDerivedTable, err)
+
+	// from sub without alias and conditions
+	sql, args, err = Select("sub.id").From(Select("id").From("table1").Where(Eq{"a": 1})).ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT sub.id FROM (SELECT id FROM table1 WHERE a=?)", sql)
+	assert.EqualValues(t, []interface{}{1}, args)
+
+	// from union with alias
+	sql, args, err = Select("sub.id").From(
+		Select("id").From("table1").Where(Eq{"a": 1}).Union(
+			"all", Select("id").From("table1").Where(Eq{"a": 2})), "sub").Where(Eq{"b": 1}).ToSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT sub.id FROM ((SELECT id FROM table1 WHERE a=?) UNION ALL (SELECT id FROM table1 WHERE a=?)) sub WHERE b=?", sql)
 	assert.EqualValues(t, []interface{}{1, 2, 1}, args)
 
-	// will raise error
-	sql, args, err = Select("c").From("table1", Insert(Eq{"a": 1}).From("table1")).ToSQL()
+	// from union without alias
+	sql, args, err = Select("sub.id").From(
+		Select("id").From("table1").Where(Eq{"a": 1}).Union(
+			"all", Select("id").From("table1").Where(Eq{"a": 2}))).Where(Eq{"b": 1}).ToSQL()
 	assert.Error(t, err)
-	fmt.Println(err)
+	assert.EqualValues(t, ErrUnnamedDerivedTable, err)
+
+	// will raise error
+	sql, args, err = Select("c").From(Insert(Eq{"a": 1}).From("table1"), "table1").ToSQL()
+	assert.Error(t, err)
+	assert.EqualValues(t, ErrUnexpectedSubQuery, err)
+
+	// will raise error
+	sql, args, err = Select("c").From(Delete(Eq{"a": 1}).From("table1"), "table1").ToSQL()
+	assert.Error(t, err)
+	assert.EqualValues(t, ErrUnexpectedSubQuery, err)
 }

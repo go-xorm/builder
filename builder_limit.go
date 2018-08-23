@@ -5,20 +5,19 @@
 package builder
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 )
 
 func (b *Builder) limitWriteTo(w Writer) error {
 	if strings.TrimSpace(b.dialect) == "" {
-		return errors.New("field `dialect` must be set up when performing LIMIT, try use `Dialect(dbType)` at first")
+		return ErrDialectNotSetUp
 	}
 
 	if b.limitation != nil {
 		limit := b.limitation
 		if limit.offset < 0 || limit.limitN <= 0 {
-			return errors.New("unexpected offset/limitN")
+			return ErrInvalidLimitation
 		}
 		// erase limit condition
 		b.limitation = nil
@@ -37,19 +36,19 @@ func (b *Builder) limitWriteTo(w Writer) error {
 			var wb *Builder
 			if b.optype == unionType {
 				wb = Dialect(b.dialect).Select("at.*", "ROWNUM RN").
-					From("at", b)
+					From(b, "at")
 			} else {
 				wb = b
 			}
 
 			if limit.offset == 0 {
-				final = Dialect(b.dialect).Select(selects...).From("at", wb).
+				final = Dialect(b.dialect).Select(selects...).From(wb, "at").
 					Where(Lte{"at.RN": limit.limitN})
 			} else {
 				sub := Dialect(b.dialect).Select("*").
-					From("at", b).Where(Lte{"at.RN": limit.offset + limit.limitN})
+					From(b, "at").Where(Lte{"at.RN": limit.offset + limit.limitN})
 
-				final = Dialect(b.dialect).Select(selects...).From("att", sub).
+				final = Dialect(b.dialect).Select(selects...).From(sub, "att").
 					Where(Gt{"att.RN": limit.offset})
 			}
 
@@ -78,15 +77,15 @@ func (b *Builder) limitWriteTo(w Writer) error {
 			var wb *Builder
 			if b.optype == unionType {
 				wb = Dialect(b.dialect).Select("*", "ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS RN").
-					From("at", b)
+					From(b, "at")
 			} else {
 				wb = b
 			}
 
 			if limit.offset == 0 {
-				final = Dialect(b.dialect).Select(selects...).From("at", wb)
+				final = Dialect(b.dialect).Select(selects...).From(wb, "at")
 			} else {
-				final = Dialect(b.dialect).Select(selects...).From("at", wb).Where(Gt{"at.RN": limit.offset})
+				final = Dialect(b.dialect).Select(selects...).From(wb, "at").Where(Gt{"at.RN": limit.offset})
 			}
 
 			return final.WriteTo(ow)

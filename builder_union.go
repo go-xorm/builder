@@ -10,7 +10,7 @@ import (
 )
 
 func (b *Builder) unionWriteTo(w Writer) error {
-	if b.limitation != nil || b.cond != NewCond() ||
+	if b.limitation != nil || b.cond.IsValid() ||
 		b.orderBy != "" || b.having != "" || b.groupBy != "" {
 		return ErrNotUnexpectedUnionConditions
 	}
