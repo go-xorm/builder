@@ -162,3 +162,30 @@ func TestExecutableCheck(t *testing.T) {
 	err = f.executableCheck("SELECT * FROM table3")
 	assert.Error(t, err)
 }
+
+func TestToSQLInDifferentDialects(t *testing.T) {
+	sql, args, err := Postgres().Select().From("table1").Where(Eq{"a": "1"}.And(Neq{"b": "100"})).ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT * FROM table1 WHERE a=$1 AND b<>$2", sql)
+	assert.EqualValues(t, []interface{}{"1", "100"}, args)
+
+	sql, args, err = MySQL().Select().From("table1").Where(Eq{"a": "1"}.And(Neq{"b": "100"})).ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT * FROM table1 WHERE a=? AND b<>?", sql)
+	assert.EqualValues(t, []interface{}{"1", "100"}, args)
+
+	sql, args, err = MsSQL().Select().From("table1").Where(Eq{"a": "1"}.And(Neq{"b": "100"})).ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT * FROM table1 WHERE a=? AND b<>?", sql)
+	assert.EqualValues(t, []interface{}{"1", "100"}, args)
+
+	sql, args, err = Oracle().Select().From("table1").Where(Eq{"a": "1"}.And(Neq{"b": "100"})).ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT * FROM table1 WHERE a=? AND b<>?", sql)
+	assert.EqualValues(t, []interface{}{"1", "100"}, args)
+
+	sql, args, err = SQLite().Select().From("table1").Where(Eq{"a": "1"}.And(Neq{"b": "100"})).ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT * FROM table1 WHERE a=? AND b<>?", sql)
+	assert.EqualValues(t, []interface{}{"1", "100"}, args)
+}
