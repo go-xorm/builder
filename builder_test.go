@@ -44,6 +44,16 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{1},
 		},
 		{
+			Like{"a", "%1"}.And(Like{"b", "%2"}),
+			"a LIKE ? AND b LIKE ?",
+			[]interface{}{"%1", "%2"},
+		},
+		{
+			Like{"a", "%1"}.Or(Like{"b", "%2"}),
+			"a LIKE ? OR b LIKE ?",
+			[]interface{}{"%1", "%2"},
+		},
+		{
 			Neq{"d": []string{"e", "f"}},
 			"d NOT IN (?,?)",
 			[]interface{}{"e", "f"},
@@ -64,6 +74,16 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{3},
 		},
 		{
+			Lt{"d": 3}.And(Lt{"e": 4}),
+			"d<? AND e<?",
+			[]interface{}{3, 4},
+		},
+		{
+			Lt{"d": 3}.Or(Lt{"e": 4}),
+			"d<? OR e<?",
+			[]interface{}{3, 4},
+		},
+		{
 			Lt{"e": Select("id").From("f").Where(Eq{"g": 1})},
 			"e<(SELECT id FROM f WHERE g=?)",
 			[]interface{}{1},
@@ -77,6 +97,16 @@ func TestBuilderCond(t *testing.T) {
 			Lte{"d": 3},
 			"d<=?",
 			[]interface{}{3},
+		},
+		{
+			Lte{"d": 3}.And(Lte{"e": 4}),
+			"d<=? AND e<=?",
+			[]interface{}{3, 4},
+		},
+		{
+			Lte{"d": 3}.Or(Lte{"e": 4}),
+			"d<=? OR e<=?",
+			[]interface{}{3, 4},
 		},
 		{
 			Lte{"e": Select("id").From("f").Where(Eq{"g": 1})},
@@ -94,6 +124,16 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{3},
 		},
 		{
+			Gt{"d": 3}.And(Gt{"e": 4}),
+			"d>? AND e>?",
+			[]interface{}{3, 4},
+		},
+		{
+			Gt{"d": 3}.Or(Gt{"e": 4}),
+			"d>? OR e>?",
+			[]interface{}{3, 4},
+		},
+		{
 			Gt{"e": Select("id").From("f").Where(Eq{"g": 1})},
 			"e>(SELECT id FROM f WHERE g=?)",
 			[]interface{}{1},
@@ -107,6 +147,16 @@ func TestBuilderCond(t *testing.T) {
 			Gte{"d": 3},
 			"d>=?",
 			[]interface{}{3},
+		},
+		{
+			Gte{"d": 3}.And(Gte{"e": 4}),
+			"d>=? AND e>=?",
+			[]interface{}{3, 4},
+		},
+		{
+			Gte{"d": 3}.Or(Gte{"e": 4}),
+			"d>=? OR e>=?",
+			[]interface{}{3, 4},
 		},
 		{
 			Gte{"e": Select("id").From("f").Where(Eq{"g": 1})},
@@ -124,8 +174,73 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{0, 2},
 		},
 		{
+			Between{"d", 0, Expr("CAST('2003-01-01' AS DATE)")},
+			"d BETWEEN ? AND CAST('2003-01-01' AS DATE)",
+			[]interface{}{0},
+		},
+		{
+			Between{"d", Expr("CAST('2003-01-01' AS DATE)"), 2},
+			"d BETWEEN CAST('2003-01-01' AS DATE) AND ?",
+			[]interface{}{2},
+		},
+		{
+			Between{"d", Expr("CAST('2003-01-01' AS DATE)"), Expr("CAST('2003-01-01' AS DATE)")},
+			"d BETWEEN CAST('2003-01-01' AS DATE) AND CAST('2003-01-01' AS DATE)",
+			[]interface{}{},
+		},
+		{
+			Between{"d", 0, 2}.And(Between{"e", 3, 4}),
+			"d BETWEEN ? AND ? AND e BETWEEN ? AND ?",
+			[]interface{}{0, 2, 3, 4},
+		},
+		{
+			Between{"d", 0, 2}.Or(Between{"e", 3, 4}),
+			"d BETWEEN ? AND ? OR e BETWEEN ? AND ?",
+			[]interface{}{0, 2, 3, 4},
+		},
+		{
+			Expr("a < ?", 1),
+			"a < ?",
+			[]interface{}{1},
+		},
+		{
+			Expr("a < ?", 1).And(Eq{"b": 2}),
+			"(a < ?) AND b=?",
+			[]interface{}{1, 2},
+		},
+		{
+			Expr("a < ?", 1).Or(Neq{"b": 2}),
+			"(a < ?) OR b<>?",
+			[]interface{}{1, 2},
+		},
+		{
 			IsNull{"d"},
 			"d IS NULL",
+			[]interface{}{},
+		},
+		{
+			IsNull{"d"}.And(IsNull{"e"}),
+			"d IS NULL AND e IS NULL",
+			[]interface{}{},
+		},
+		{
+			IsNull{"d"}.Or(IsNull{"e"}),
+			"d IS NULL OR e IS NULL",
+			[]interface{}{},
+		},
+		{
+			NotNull{"d"},
+			"d IS NOT NULL",
+			[]interface{}{},
+		},
+		{
+			NotNull{"d"}.And(NotNull{"e"}),
+			"d IS NOT NULL AND e IS NOT NULL",
+			[]interface{}{},
+		},
+		{
+			NotNull{"d"}.Or(NotNull{"e"}),
+			"d IS NOT NULL OR e IS NOT NULL",
 			[]interface{}{},
 		},
 		{
@@ -386,6 +501,31 @@ func TestBuilderCond(t *testing.T) {
 		{
 			Not{Eq{"a": 1, "b": 2}},
 			"NOT (a=? AND b=?)",
+			[]interface{}{1, 2},
+		},
+		{
+			Not{Neq{"a": 1, "b": 2}},
+			"NOT (a<>? AND b<>?)",
+			[]interface{}{1, 2},
+		},
+		{
+			Not{Eq{"a": 1}.And(Eq{"b": 2})},
+			"NOT (a=? AND b=?)",
+			[]interface{}{1, 2},
+		},
+		{
+			Not{Neq{"a": 1}.And(Neq{"b": 2})},
+			"NOT (a<>? AND b<>?)",
+			[]interface{}{1, 2},
+		},
+		{
+			Not{Eq{"a": 1}}.And(Neq{"b": 2}),
+			"NOT a=? AND b<>?",
+			[]interface{}{1, 2},
+		},
+		{
+			Not{Eq{"a": 1}}.Or(Neq{"b": 2}),
+			"NOT a=? OR b<>?",
 			[]interface{}{1, 2},
 		},
 	}
