@@ -53,6 +53,9 @@ func (b *Builder) selectWriteTo(w Writer) error {
 		if b.cond.IsValid() && len(b.tableName) <= 0 {
 			return ErrUnnamedDerivedTable
 		}
+		if b.dialect != b.subQuery.dialect {
+			return ErrInconsistentDialect
+		}
 
 		switch b.subQuery.optype {
 		case selectType, unionType:
