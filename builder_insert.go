@@ -36,7 +36,7 @@ func (b *Builder) insertWriteTo(w Writer) error {
 		value := b.inserts[col]
 		fmt.Fprint(w, col)
 		if e, ok := value.(expr); ok {
-			fmt.Fprint(valBuffer, e.sql)
+			fmt.Fprintf(valBuffer, "(%s)", e.sql)
 			args = append(args, e.args...)
 		} else {
 			fmt.Fprint(valBuffer, "?")
