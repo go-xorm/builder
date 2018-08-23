@@ -25,12 +25,6 @@ func (b *Builder) selectWriteTo(w Writer) error {
 		return b.limitWriteTo(w)
 	}
 
-	// perform limit before writing to writer when b.dialect between ORACLE and MSSQL
-	// this avoid a duplicate writing problem in simple limit query
-	if b.limitation != nil && (b.dialect == ORACLE || b.dialect == MSSQL) {
-		return b.limitWriteTo(w)
-	}
-
 	if _, err := fmt.Fprint(w, "SELECT "); err != nil {
 		return err
 	}
@@ -56,6 +50,10 @@ func (b *Builder) selectWriteTo(w Writer) error {
 			return err
 		}
 	} else {
+		if b.cond != NewCond() && len(b.tableName) <= 0 {
+			return ErrUnnamedDerivedTable
+		}
+
 		switch b.subQuery.optype {
 		case selectType, unionType:
 			fmt.Fprint(w, " FROM (")

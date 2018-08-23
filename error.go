@@ -33,4 +33,6 @@ var (
 	ErrDialectNotSetUp = errors.New("Dialect is not setup yet, try to use `Dialect(dbType)` at first")
 	// ErrInvalidLimitation offset or limit is not correct
 	ErrInvalidLimitation = errors.New("Offset or limit is not correct")
+	// ErrUnnamedDerivedTable Every derived table must have its own alias
+	ErrUnnamedDerivedTable = errors.New("Every derived table must have its own alias")
 )
