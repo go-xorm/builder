@@ -31,7 +31,7 @@ func BenchmarkPlaceholderConverter(b *testing.B) {
 }
 
 func TestBoundSQLConverter(t *testing.T) {
-	newSQL, err := ConvertToBoundSQL(placeholderConverterSQL, []interface{}{1, 2.1, "3", 4, "5", true})
+	newSQL, err := ConvertToBoundSQL(placeholderConverterSQL, []interface{}{1, 2.1, "3", uint(4), "5", true})
 	assert.NoError(t, err)
 	assert.EqualValues(t, placeholderBoundSQL, newSQL)
 
@@ -42,6 +42,10 @@ func TestBoundSQLConverter(t *testing.T) {
 	newSQL, err = ToBoundSQL(Select("id").From("table").Where(In("a", 1, 2)))
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT id FROM table WHERE a IN (1,2)", newSQL)
+
+	newSQL, err = ToBoundSQL(Eq{"a": 1})
+	assert.NoError(t, err)
+	assert.EqualValues(t, "a=1", newSQL)
 
 	newSQL, err = ToBoundSQL(1)
 	assert.Error(t, err)
