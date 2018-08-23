@@ -17,7 +17,13 @@ func Select(cols ...string) *Builder {
 
 func (b *Builder) selectWriteTo(w Writer) error {
 	if len(b.tableName) <= 0 {
-		return errors.New("no table indicated")
+		return ErrNoTableName
+	}
+
+	// perform limit before writing to writer when b.dialect between ORACLE and MSSQL
+	// this avoid a duplicate writing problem in simple limit query
+	if b.limitation != nil && (b.dialect == ORACLE || b.dialect == MSSQL) {
+		return b.limitWriteTo(w)
 	}
 
 	// perform limit before writing to writer when b.dialect between ORACLE and MSSQL

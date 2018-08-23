@@ -27,13 +27,13 @@ func TestBuilder_Union(t *testing.T) {
 		Where(Eq{"a": 2}).Limit(5, 10).
 		ToSQL()
 	assert.Error(t, err)
-	fmt.Println(err)
+	assert.EqualValues(t, ErrNotUnexpectedUnionConditions, err)
 
 	// will raise error
 	sql, args, err = Delete(Eq{"a": 1}).From("t1").
 		Union("all", Select("*").From("t2").Where(Eq{"status": "2"})).ToSQL()
 	assert.Error(t, err)
-	fmt.Println(err)
+	assert.EqualValues(t, ErrUnsupportedUnionMembers, err)
 
 	// will be overwrote by SELECT op
 	sql, args, err = Select("*").From("t1").Where(Eq{"status": "1"}).

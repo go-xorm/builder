@@ -14,11 +14,12 @@ import (
 func TestBuilder_Select(t *testing.T) {
 	sql, args, err := Select("c, d").From("table1").ToSQL()
 	assert.NoError(t, err)
-	fmt.Println(sql, args)
+	assert.EqualValues(t, "SELECT c, d FROM table1", sql)
 
 	sql, args, err = Select("c, d").From("table1").Where(Eq{"a": 1}).ToSQL()
 	assert.NoError(t, err)
-	fmt.Println(sql, args)
+	assert.EqualValues(t, "SELECT c, d FROM table1 WHERE a=?", sql)
+	assert.EqualValues(t, []interface{}{1}, args)
 
 	sql, args, err = Select("c, d").From("table1").LeftJoin("table2", Eq{"table1.id": 1}.And(Lt{"table2.id": 3})).
 		RightJoin("table3", "table2.id = table3.tid").Where(Eq{"a": 1}).ToSQL()
@@ -47,6 +48,10 @@ func TestBuilder_Select(t *testing.T) {
 	assert.EqualValues(t, "SELECT c, d FROM table1 LEFT JOIN table2 ON table1.id=? AND table2.id<? INNER JOIN table3 ON table2.id = table3.tid WHERE a=?",
 		sql)
 	assert.EqualValues(t, []interface{}{1, 3, 1}, args)
+
+	_, _, err = Select("c, d").ToSQL()
+	assert.Error(t, err)
+	assert.EqualValues(t, ErrNoTableName, err)
 }
 
 func TestBuilderSelectGroupBy(t *testing.T) {

@@ -6,7 +6,6 @@ package builder
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 )
 
@@ -18,10 +17,10 @@ func Insert(eq Eq) *Builder {
 
 func (b *Builder) insertWriteTo(w Writer) error {
 	if len(b.tableName) <= 0 {
-		return errors.New("no table indicated")
+		return ErrNoTableName
 	}
 	if len(b.inserts) <= 0 {
-		return errors.New("no column to be insert")
+		return ErrNoColumnToInsert
 	}
 
 	if _, err := fmt.Fprintf(w, "INSERT INTO %s (", b.tableName); err != nil {
