@@ -54,6 +54,11 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{"%1", "%2"},
 		},
 		{
+			Neq{"d": "e"}.Or(Neq{"f": "g"}),
+			"d<>? OR f<>?",
+			[]interface{}{"e", "g"},
+		},
+		{
 			Neq{"d": []string{"e", "f"}},
 			"d NOT IN (?,?)",
 			[]interface{}{"e", "f"},
@@ -369,6 +374,21 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{1},
 		},
 		{
+			In("a", []string{}),
+			"0=1",
+			[]interface{}{},
+		},
+		{
+			In("a", []interface{}{}),
+			"0=1",
+			[]interface{}{},
+		},
+		{
+			In("a", []MyInt{}),
+			"0=1",
+			[]interface{}{},
+		},
+		{
 			In("a", []interface{}{1, 2, 3}).And(Eq{"b": "c"}),
 			"a IN (?,?,?) AND b=?",
 			[]interface{}{1, 2, 3, "c"},
@@ -484,8 +504,33 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{1},
 		},
 		{
+			NotIn("a", []interface{}{}),
+			"0=0",
+			[]interface{}{},
+		},
+		{
+			NotIn("a", []string{}),
+			"0=0",
+			[]interface{}{},
+		},
+		{
+			NotIn("a", []MyInt{}),
+			"0=0",
+			[]interface{}{},
+		},
+		{
+			NotIn("a", []MyInt{1, 2}),
+			"a NOT IN (?,?)",
+			[]interface{}{1, 2},
+		},
+		{
 			NotIn("a", []interface{}{1, 2, 3}).And(Eq{"b": "c"}),
 			"a NOT IN (?,?,?) AND b=?",
+			[]interface{}{1, 2, 3, "c"},
+		},
+		{
+			NotIn("a", []interface{}{1, 2, 3}).Or(Eq{"b": "c"}),
+			"a NOT IN (?,?,?) OR b=?",
 			[]interface{}{1, 2, 3, "c"},
 		},
 		{
@@ -589,8 +634,32 @@ func TestExprCond(t *testing.T) {
 	assert.EqualValues(t, []interface{}{1, 2, 3, 4}, args)
 }
 
-func TestBuilderToBoundSQL(t *testing.T) {
+func TestBuilder_ToBoundSQL(t *testing.T) {
 	newSQL, err := Select("id").From("table").Where(In("a", 1, 2)).ToBoundSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT id FROM table WHERE a IN (1,2)", newSQL)
+}
+
+func TestBuilder_From2(t *testing.T) {
+	b := Select("id").From("table_b", "tb").Where(Eq{"b": "a"})
+	sql, args, err := b.ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT id FROM table_b tb WHERE b=?", sql)
+	assert.EqualValues(t, []interface{}{"a"}, args)
+}
+
+func TestBuilder_And(t *testing.T) {
+	b := Select("id").From("table_b", "tb").Where(Eq{"b": "a"}).And(Neq{"c": "d"})
+	sql, args, err := b.ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT id FROM table_b tb WHERE b=? AND c<>?", sql)
+	assert.EqualValues(t, []interface{}{"a", "d"}, args)
+}
+
+func TestBuilder_Or(t *testing.T) {
+	b := Select("id").From("table_b", "tb").Where(Eq{"b": "a"}).Or(Neq{"c": "d"})
+	sql, args, err := b.ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT id FROM table_b tb WHERE b=? OR c<>?", sql)
+	assert.EqualValues(t, []interface{}{"a", "d"}, args)
 }
