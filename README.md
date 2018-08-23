@@ -24,11 +24,11 @@ sql, args, err := Select("c, d").From("table1").Where(Eq{"a": 1}).ToSQL()
 sql, args, err = Select("c, d").From("table1").LeftJoin("table2", Eq{"table1.id": 1}.And(Lt{"table2.id": 3})).
 		RightJoin("table3", "table2.id = table3.tid").Where(Eq{"a": 1}).ToSQL()
 // From sub query
-sql, args, err := Select("sub.id").From("sub", Select("c").From("table1").Where(Eq{"a": 1})).Where(Eq{"b": 1}).ToSQL()
+sql, args, err := Select("sub.id").From(Select("c").From("table1").Where(Eq{"a": 1}), "sub").Where(Eq{"b": 1}).ToSQL()
 // From union query
-sql, args, err = Select("sub.id").From("sub",
-		Select("id").From("table1").Where(Eq{"a": 1}).
-			Union("all", Select("id").From("table1").Where(Eq{"a": 2}))).Where(Eq{"b": 1}).ToSQL()
+sql, args, err = Select("sub.id").From(
+	Select("id").From("table1").Where(Eq{"a": 1}).Union("all", Select("id").From("table1").Where(Eq{"a": 2})),"sub").
+	Where(Eq{"b": 1}).ToSQL()
 // With order by
 sql, args, err = Select("a", "b", "c").From("table1").Where(Eq{"f1": "v1", "f2": "v2"}).
 		OrderBy("a ASC").ToSQL()
