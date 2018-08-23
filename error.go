@@ -27,4 +27,10 @@ var (
 	ErrNotUnexpectedUnionConditions = errors.New("Unexpected conditional fields in UNION query")
 	// ErrUnsupportedUnionMembers unexpected members in UNION query
 	ErrUnsupportedUnionMembers = errors.New("Unexpected members in UNION query")
+	// ErrUnexpectedSubQuery Unexpected sub-query in SELECT query
+	ErrUnexpectedSubQuery = errors.New("Unexpected sub-query in SELECT query")
+	// ErrDialectNotSetUp dialect is not setup yet
+	ErrDialectNotSetUp = errors.New("Dialect is not setup yet, try to use `Dialect(dbType)` at first")
+	// ErrInvalidLimitation offset or limit is not correct
+	ErrInvalidLimitation = errors.New("Offset or limit is not correct")
 )

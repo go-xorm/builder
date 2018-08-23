@@ -5,7 +5,6 @@
 package builder
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -16,7 +15,7 @@ func Select(cols ...string) *Builder {
 }
 
 func (b *Builder) selectWriteTo(w Writer) error {
-	if len(b.tableName) <= 0 {
+	if len(b.tableName) <= 0 && !b.isNested {
 		return ErrNoTableName
 	}
 
@@ -70,7 +69,7 @@ func (b *Builder) selectWriteTo(w Writer) error {
 				fmt.Fprintf(w, ") %v", b.tableName)
 			}
 		default:
-			return errors.New("SubQuery is limited in SELECT and UNION")
+			return ErrUnexpectedSubQuery
 		}
 	}
 
