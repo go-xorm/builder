@@ -199,6 +199,21 @@ func TestBuilderCond(t *testing.T) {
 			[]interface{}{0, 2, 3, 4},
 		},
 		{
+			Expr("a < ?", 1),
+			"a < ?",
+			[]interface{}{1},
+		},
+		{
+			Expr("a < ?", 1).And(Eq{"b": 2}),
+			"(a < ?) AND b=?",
+			[]interface{}{1, 2},
+		},
+		{
+			Expr("a < ?", 1).Or(Neq{"b": 2}),
+			"(a < ?) OR b<>?",
+			[]interface{}{1, 2},
+		},
+		{
 			IsNull{"d"},
 			"d IS NULL",
 			[]interface{}{},
@@ -486,6 +501,11 @@ func TestBuilderCond(t *testing.T) {
 		{
 			Not{Eq{"a": 1, "b": 2}},
 			"NOT (a=? AND b=?)",
+			[]interface{}{1, 2},
+		},
+		{
+			Not{Neq{"a": 1, "b": 2}},
+			"NOT (a<>? AND b<>?)",
 			[]interface{}{1, 2},
 		},
 		{
