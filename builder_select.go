@@ -50,7 +50,7 @@ func (b *Builder) selectWriteTo(w Writer) error {
 			return err
 		}
 	} else {
-		if b.cond != NewCond() && len(b.tableName) <= 0 {
+		if b.cond.IsValid() && len(b.tableName) <= 0 {
 			return ErrUnnamedDerivedTable
 		}
 

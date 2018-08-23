@@ -157,5 +157,4 @@ func TestExecutableCheck(t *testing.T) {
 
 	err = f.executableCheck("SELECT * FROM table3")
 	assert.Error(t, err)
-	fmt.Println(err)
 }
