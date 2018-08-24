@@ -282,8 +282,18 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 		return "", nil, err
 	}
 	var sql = w.writer.String()
-	if b.dialect == POSTGRES {
-		var err error
+
+	var err error
+	switch b.dialect {
+	case ORACLE:
+		if sql, err = ConvertPlaceholder(sql, ":"); err != nil {
+			return "", nil, err
+		}
+	case MSSQL:
+		if sql, err = ConvertPlaceholder(sql, "@"); err != nil {
+			return "", nil, err
+		}
+	case POSTGRES:
 		if sql, err = ConvertPlaceholder(sql, "$"); err != nil {
 			return "", nil, err
 		}
