@@ -36,6 +36,10 @@ func TestBoundSQLConverter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.EqualValues(t, placeholderBoundSQL, newSQL)
 
+	newSQL, err = ConvertToBoundSQL(placeholderConverterSQL, []interface{}{1, 2.1, sql2.Named("any", "3"), uint(4), "5", true})
+	assert.NoError(t, err)
+	assert.EqualValues(t, placeholderBoundSQL, newSQL)
+
 	newSQL, err = ConvertToBoundSQL(placeholderConverterSQL, []interface{}{1, 2.1, "3", 4, "5"})
 	assert.Error(t, err)
 	assert.EqualValues(t, ErrNeedMoreArguments, err)
@@ -178,13 +182,13 @@ func TestToSQLInDifferentDialects(t *testing.T) {
 	sql, args, err = MsSQL().Select().From("table1").Where(Eq{"a": "1"}.And(Neq{"b": "100"})).ToSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT * FROM table1 WHERE a=@p1 AND b<>@p2", sql)
-	assert.EqualValues(t, []interface{}{"1", "100"}, args)
+	assert.EqualValues(t, []interface{}{sql2.Named("p1", "1"), sql2.Named("p2", "100")}, args)
 
 	// test sql.NamedArg in cond
 	sql, args, err = MsSQL().Select().From("table1").Where(Eq{"a": sql2.NamedArg{Name: "param", Value: "1"}}.And(Neq{"b": "100"})).ToSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT * FROM table1 WHERE a=@p1 AND b<>@p2", sql)
-	assert.EqualValues(t, []interface{}{"1", "100"}, args)
+	assert.EqualValues(t, []interface{}{sql2.Named("p1", "1"), sql2.Named("p2", "100")}, args)
 
 	sql, args, err = Oracle().Select().From("table1").Where(Eq{"a": "1"}.And(Neq{"b": "100"})).ToSQL()
 	assert.NoError(t, err)

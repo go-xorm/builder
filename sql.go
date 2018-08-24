@@ -5,6 +5,7 @@
 package builder
 
 import (
+	sql2 "database/sql"
 	"fmt"
 	"reflect"
 	"time"
@@ -105,10 +106,15 @@ func ConvertToBoundSQL(sql string, args []interface{}) (string, error) {
 				return "", ErrNeedMoreArguments
 			}
 
-			if noSQLQuoteNeeded(args[j]) {
-				_, err = fmt.Fprint(&buf, args[j])
+			arg := args[j]
+			if namedArg, ok := arg.(sql2.NamedArg); ok {
+				arg = namedArg.Value
+			}
+
+			if noSQLQuoteNeeded(arg) {
+				_, err = fmt.Fprint(&buf, arg)
 			} else {
-				_, err = fmt.Fprintf(&buf, "'%v'", args[j])
+				_, err = fmt.Fprintf(&buf, "'%v'", arg)
 			}
 			if err != nil {
 				return "", err

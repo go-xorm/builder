@@ -5,7 +5,6 @@
 package builder
 
 import (
-	"database/sql"
 	"io"
 )
 
@@ -38,13 +37,7 @@ func (s *BytesWriter) Write(buf []byte) (int, error) {
 
 // Append appends args to Writer
 func (s *BytesWriter) Append(args ...interface{}) {
-	for e := range args {
-		if namedArg, ok := args[e].(sql.NamedArg); ok {
-			s.args = append(s.args, namedArg.Value)
-		} else {
-			s.args = append(s.args, args[e])
-		}
-	}
+	s.args = append(s.args, args...)
 }
 
 // Cond defines an interface

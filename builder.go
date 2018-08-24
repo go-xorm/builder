@@ -4,6 +4,11 @@
 
 package builder
 
+import (
+	sql2 "database/sql"
+	"fmt"
+)
+
 type optype byte
 
 const (
@@ -294,6 +299,17 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 			return "", nil, err
 		}
 	case MSSQL:
+		// in case of different mssql drivers
+		for e := range w.args {
+			name := fmt.Sprintf("p%d", e+1)
+
+			if namedArg, ok := w.args[e].(sql2.NamedArg); ok {
+				w.args[e] = sql2.Named(name, namedArg.Value)
+			} else {
+				w.args[e] = sql2.Named(name, w.args[e])
+			}
+		}
+
 		if sql, err = ConvertPlaceholder(sql, "@p"); err != nil {
 			return "", nil, err
 		}
