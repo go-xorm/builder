@@ -187,7 +187,7 @@ func randUpdateByCondition(rgc *randGenConf) *Builder {
 	b := Update(eqs).From("table1")
 
 	if rgc.allowCond && rand.Intn(1000) >= 500 {
-		b = b.Where(randCond(b.selects, 3))
+		b.Where(randCond(fields, 3))
 	}
 
 	return b
