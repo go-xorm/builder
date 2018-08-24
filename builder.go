@@ -167,7 +167,10 @@ func (b *Builder) Union(unionTp string, unionCond *Builder) *Builder {
 	}
 
 	if unionCond != nil {
-		unionCond.dialect = builder.dialect
+		if unionCond.dialect == "" && builder.dialect != "" {
+			unionCond.dialect = builder.dialect
+		}
+
 		builder.unions = append(builder.unions, union{unionTp, unionCond})
 	}
 
@@ -281,16 +284,17 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 	if err := b.WriteTo(w); err != nil {
 		return "", nil, err
 	}
-	var sql = w.writer.String()
 
+	var sql = w.writer.String()
 	var err error
+
 	switch b.dialect {
 	case ORACLE:
 		if sql, err = ConvertPlaceholder(sql, ":"); err != nil {
 			return "", nil, err
 		}
 	case MSSQL:
-		if sql, err = ConvertPlaceholder(sql, "@"); err != nil {
+		if sql, err = ConvertPlaceholder(sql, "@p"); err != nil {
 			return "", nil, err
 		}
 	case POSTGRES:

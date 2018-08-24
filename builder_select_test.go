@@ -126,9 +126,16 @@ func TestBuilder_From(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualValues(t, ErrInconsistentDialect, err)
 
-	// from a sub-query in dialect
+	// from a sub-query (dialect set up)
 	sql, args, err = MySQL().Select("sub.id").From(
 		MySQL().Select("id").From("table1").Where(Eq{"a": 1}), "sub").Where(Eq{"b": 1}).ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT sub.id FROM (SELECT id FROM table1 WHERE a=?) sub WHERE b=?", sql)
+	assert.EqualValues(t, []interface{}{1, 1}, args)
+
+	// from a sub-query (dialect not set up)
+	sql, args, err = MySQL().Select("sub.id").From(
+		Select("id").From("table1").Where(Eq{"a": 1}), "sub").Where(Eq{"b": 1}).ToSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT sub.id FROM (SELECT id FROM table1 WHERE a=?) sub WHERE b=?", sql)
 	assert.EqualValues(t, []interface{}{1, 1}, args)

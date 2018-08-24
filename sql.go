@@ -129,27 +129,22 @@ func ConvertPlaceholder(sql, prefix string) (string, error) {
 	var i, j, start int
 	for ; i < len(sql); i++ {
 		if sql[i] == '?' {
-			_, err := buf.WriteString(sql[start:i])
-			if err != nil {
+			if _, err := buf.WriteString(sql[start:i]); err != nil {
 				return "", err
 			}
+
 			start = i + 1
-
-			_, err = buf.WriteString(prefix)
-			if err != nil {
-				return "", err
-			}
-
 			j = j + 1
-			_, err = buf.WriteString(fmt.Sprintf("%d", j))
-			if err != nil {
+
+			if _, err := buf.WriteString(fmt.Sprintf("%v%d", prefix, j)); err != nil {
 				return "", err
 			}
 		}
 	}
-	_, err := buf.WriteString(sql[start:])
-	if err != nil {
+
+	if _, err := buf.WriteString(sql[start:]); err != nil {
 		return "", err
 	}
+
 	return buf.String(), nil
 }

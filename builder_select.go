@@ -53,8 +53,13 @@ func (b *Builder) selectWriteTo(w Writer) error {
 		if b.cond.IsValid() && len(b.tableName) <= 0 {
 			return ErrUnnamedDerivedTable
 		}
-		if b.dialect != b.subQuery.dialect {
+		if b.subQuery.dialect != "" && b.dialect != b.subQuery.dialect {
 			return ErrInconsistentDialect
+		}
+
+		// dialect of sub-query will inherit from the main one (if not set up)
+		if b.dialect != "" && b.subQuery.dialect == "" {
+			b.subQuery.dialect = b.dialect
 		}
 
 		switch b.subQuery.optype {
