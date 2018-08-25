@@ -294,12 +294,8 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 	var err error
 
 	switch b.dialect {
-	case ORACLE:
-		if sql, err = ConvertPlaceholder(sql, ":"); err != nil {
-			return "", nil, err
-		}
-	case MSSQL:
-		// in case of different mssql drivers
+	case ORACLE, MSSQL:
+		// in case of sql.NamedArg in args
 		for e := range w.args {
 			name := fmt.Sprintf("p%d", e+1)
 
@@ -310,7 +306,14 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 			}
 		}
 
-		if sql, err = ConvertPlaceholder(sql, "@p"); err != nil {
+		var prefix string
+		if b.dialect == ORACLE {
+			prefix = ":p"
+		} else {
+			prefix = "@p"
+		}
+
+		if sql, err = ConvertPlaceholder(sql, prefix); err != nil {
 			return "", nil, err
 		}
 	case POSTGRES:
