@@ -21,6 +21,22 @@ func TestBuilder_Union(t *testing.T) {
 	assert.EqualValues(t, "(SELECT * FROM t1 WHERE status=?) UNION ALL (SELECT * FROM t2 WHERE status=?) UNION DISTINCT (SELECT * FROM t2 WHERE status=?) UNION  (SELECT * FROM t2 WHERE status=?)", sql)
 	assert.EqualValues(t, []interface{}{"1", "2", "3", "3"}, args)
 
+	// sub-query will inherit dialect from the main one
+	sql, args, err = MySQL().Select("*").From("t1").Where(Eq{"status": "1"}).
+		Union("all", Select("*").From("t2").Where(Eq{"status": "2"}).Limit(10)).
+		Union("", Select("*").From("t2").Where(Eq{"status": "3"})).
+		ToSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "(SELECT * FROM t1 WHERE status=?) UNION ALL (SELECT * FROM t2 WHERE status=? LIMIT 10) UNION  (SELECT * FROM t2 WHERE status=?)", sql)
+	assert.EqualValues(t, []interface{}{"1", "2", "3"}, args)
+
+	// will raise error
+	sql, args, err = MySQL().Select("*").From("t1").Where(Eq{"status": "1"}).
+		Union("all", Oracle().Select("*").From("t2").Where(Eq{"status": "2"}).Limit(10)).
+		ToSQL()
+	assert.Error(t, err)
+	assert.EqualValues(t, ErrInconsistentDialect, err)
+
 	// will raise error
 	sql, args, err = Select("*").From("table1").Where(Eq{"a": "1"}).
 		Union("all", Select("*").From("table2").Where(Eq{"a": "2"})).
