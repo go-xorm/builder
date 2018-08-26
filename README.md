@@ -5,7 +5,7 @@
 
 Package builder is a lightweight and fast SQL builder for Go and XORM.
 
-Make sure you have installed Go 1.1+ and then:
+Make sure you have installed Go 1.8+ and then:
 
     go get github.com/go-xorm/builder
 
