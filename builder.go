@@ -290,20 +290,21 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 		return "", nil, err
 	}
 
+	// in case of sql.NamedArg in args
+	for e := range w.args {
+		if namedArg, ok := w.args[e].(sql2.NamedArg); ok {
+			w.args[e] = namedArg.Value
+		}
+	}
+
 	var sql = w.writer.String()
 	var err error
 
 	switch b.dialect {
 	case ORACLE, MSSQL:
-		// in case of sql.NamedArg in args
+		// This is for compatibility with different sql drivers
 		for e := range w.args {
-			name := fmt.Sprintf("p%d", e+1)
-
-			if namedArg, ok := w.args[e].(sql2.NamedArg); ok {
-				w.args[e] = sql2.Named(name, namedArg.Value)
-			} else {
-				w.args[e] = sql2.Named(name, w.args[e])
-			}
+			w.args[e] = sql2.Named(fmt.Sprintf("p%d", e+1), w.args[e])
 		}
 
 		var prefix string
