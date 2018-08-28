@@ -1,0 +1,63 @@
+workspace:
+  base: /go
+  path: src/github.com/go-xorm/builder
+
+clone:
+  git:
+    image: plugins/git:next
+    depth: 50
+    tags: true
+
+pipeline:
+
+  test:
+    image: golang:1.8
+    pull: true
+    commands:
+      - go get -u github.com/golang/lint/golint
+      - go get -u github.com/stretchr/testify/assert
+      - go get -u github.com/go-xorm/sqlfiddle
+      - golint ./...
+      - go test -v -race -coverprofile=coverage.txt -covermode=atomic
+      - bash <(curl -s https://codecov.io/bash)
+    when:
+      event: [ push, tag, pull_request ]
+
+  test:
+    image: golang:1.9
+    pull: true
+    commands:
+      - go get -u github.com/golang/lint/golint
+      - go get -u github.com/stretchr/testify/assert
+      - go get -u github.com/go-xorm/sqlfiddle
+      - golint ./...
+      - go test -v -race -coverprofile=coverage.txt -covermode=atomic
+      - bash <(curl -s https://codecov.io/bash)
+    when:
+      event: [ push, tag, pull_request ]
+
+  test:
+    image: golang:1.10
+    pull: true
+    commands:
+      - go get -u github.com/golang/lint/golint
+      - go get -u github.com/stretchr/testify/assert
+      - go get -u github.com/go-xorm/sqlfiddle
+      - golint ./...
+      - go test -v -race -coverprofile=coverage.txt -covermode=atomic
+      - bash <(curl -s https://codecov.io/bash)
+    when:
+      event: [ push, tag, pull_request ]
+
+  test:
+    image: golang:1.11
+    pull: true
+    commands:
+      - go get -u github.com/golang/lint/golint
+      - go get -u github.com/stretchr/testify/assert
+      - go get -u github.com/go-xorm/sqlfiddle
+      - golint ./...
+      - go test -v -race -coverprofile=coverage.txt -covermode=atomic
+      - bash <(curl -s https://codecov.io/bash)
+    when:
+      event: [ push, tag, pull_request ]
