@@ -12,6 +12,7 @@ pipeline:
 
   test:
     image: golang:1.8
+    group: testing
     pull: true
     commands:
       - go get -u github.com/golang/lint/golint
@@ -25,6 +26,7 @@ pipeline:
 
   test:
     image: golang:1.9
+    group: testing
     pull: true
     commands:
       - go get -u github.com/golang/lint/golint
@@ -38,6 +40,7 @@ pipeline:
 
   test:
     image: golang:1.10
+    group: testing
     pull: true
     commands:
       - go get -u github.com/golang/lint/golint
@@ -51,6 +54,7 @@ pipeline:
 
   test:
     image: golang:1.11
+    group: testing
     pull: true
     commands:
       - go get -u github.com/golang/lint/golint
