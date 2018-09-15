@@ -12,12 +12,13 @@ import (
 type optype byte
 
 const (
-	condType   optype = iota // only conditions
-	selectType               // select
-	insertType               // insert
-	updateType               // update
-	deleteType               // delete
-	unionType                // union
+	condType    optype = iota // only conditions
+	selectType                // select
+	insertType                // insert
+	updateType                // update
+	deleteType                // delete
+	unionType                 // union
+	replaceType               // replace
 )
 
 const (
@@ -47,20 +48,21 @@ type limit struct {
 // Builder describes a SQL statement
 type Builder struct {
 	optype
-	dialect    string
-	isNested   bool
-	tableName  string
-	subQuery   *Builder
-	cond       Cond
-	selects    []string
-	joins      []join
-	unions     []union
-	limitation *limit
-	inserts    Eq
-	updates    []Eq
-	orderBy    string
-	groupBy    string
-	having     string
+	dialect      string
+	isNested     bool
+	tableName    string
+	subQuery     *Builder
+	cond         Cond
+	selects      []string
+	joins        []join
+	unions       []union
+	limitation   *limit
+	inserts      Eq
+	updates      []Eq
+	replacements []interface{}
+	orderBy      string
+	groupBy      string
+	having       string
 }
 
 // Dialect sets the db dialect of Builder.
@@ -129,6 +131,14 @@ func (b *Builder) From(subject interface{}, alias ...string) *Builder {
 // TableName returns the table name
 func (b *Builder) TableName() string {
 	return b.tableName
+}
+
+// Replace replace SQL
+func (b *Builder) Replace(replacements ...interface{}) *Builder {
+	b.replacements = replacements
+	b.optype = replaceType
+
+	return b
 }
 
 // Into sets insert table name
@@ -278,6 +288,8 @@ func (b *Builder) WriteTo(w Writer) error {
 		return b.deleteWriteTo(w)
 	case unionType:
 		return b.unionWriteTo(w)
+	case replaceType:
+		return b.replaceWriteTo(w)
 	}
 
 	return ErrNotSupportType
