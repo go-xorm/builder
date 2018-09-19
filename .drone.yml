@@ -12,7 +12,6 @@ pipeline:
 
   test:
     image: golang:1.8
-    #group: testing
     pull: true
     commands:
       - go get -u github.com/golang/lint/golint
