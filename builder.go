@@ -47,20 +47,21 @@ type limit struct {
 // Builder describes a SQL statement
 type Builder struct {
 	optype
-	dialect    string
-	isNested   bool
-	tableName  string
-	subQuery   *Builder
-	cond       Cond
-	selects    []string
-	joins      []join
-	unions     []union
-	limitation *limit
-	inserts    Eq
-	updates    []Eq
-	orderBy    string
-	groupBy    string
-	having     string
+	dialect      string
+	isNested     bool
+	tableName    string
+	subQuery     *Builder
+	cond         Cond
+	selects      []string
+	joins        []join
+	unions       []union
+	limitation   *limit
+	inserts      Eq
+	insertSelect *Builder
+	updates      []Eq
+	orderBy      string
+	groupBy      string
+	having       string
 }
 
 // Dialect sets the db dialect of Builder.
@@ -238,8 +239,13 @@ func (b *Builder) Or(cond Cond) *Builder {
 }
 
 // Insert sets insert SQL
-func (b *Builder) Insert(eq Eq) *Builder {
-	b.inserts = eq
+func (b *Builder) Insert(eq interface{}) *Builder {
+	switch t := eq.(type) {
+	case Eq:
+		b.inserts = t
+	case *Builder:
+		b.insertSelect = t
+	}
 	b.optype = insertType
 	return b
 }

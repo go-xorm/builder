@@ -10,17 +10,29 @@ import (
 )
 
 // Insert creates an insert Builder
-func Insert(eq Eq) *Builder {
+func Insert(eq interface{}) *Builder {
 	builder := &Builder{cond: NewCond()}
 	return builder.Insert(eq)
+}
+
+func (b *Builder) insertSelectWriteTo(w Writer) error {
+	if _, err := fmt.Fprintf(w, "INSERT INTO %s ", b.tableName); err != nil {
+		return err
+	}
+
+	return b.insertSelect.WriteTo(w)
 }
 
 func (b *Builder) insertWriteTo(w Writer) error {
 	if len(b.tableName) <= 0 {
 		return ErrNoTableName
 	}
-	if len(b.inserts) <= 0 {
+	if len(b.inserts) <= 0 && b.insertSelect == nil {
 		return ErrNoColumnToInsert
+	}
+
+	if b.insertSelect != nil {
+		return b.insertSelectWriteTo(w)
 	}
 
 	if _, err := fmt.Fprintf(w, "INSERT INTO %s (", b.tableName); err != nil {

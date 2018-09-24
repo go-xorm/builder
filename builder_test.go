@@ -596,24 +596,6 @@ func TestBuilderCond(t *testing.T) {
 	}
 }
 
-func TestBuilderInsert(t *testing.T) {
-	sql, err := Insert(Eq{"c": 1, "d": 2}).Into("table1").ToBoundSQL()
-	assert.NoError(t, err)
-	assert.EqualValues(t, "INSERT INTO table1 (c,d) Values (1,2)", sql)
-
-	sql, err = Insert(Eq{"c": 1, "d": Expr("SELECT b FROM t WHERE d=? LIMIT 1", 2)}).Into("table1").ToBoundSQL()
-	assert.NoError(t, err)
-	assert.EqualValues(t, "INSERT INTO table1 (c,d) Values (1,(SELECT b FROM t WHERE d=2 LIMIT 1))", sql)
-
-	sql, err = Insert(Eq{"c": 1, "d": 2}).ToBoundSQL()
-	assert.Error(t, err)
-	assert.EqualValues(t, ErrNoTableName, err)
-
-	sql, err = Insert(Eq{}).Into("table1").ToBoundSQL()
-	assert.Error(t, err)
-	assert.EqualValues(t, ErrNoColumnToInsert, err)
-}
-
 func TestSubquery(t *testing.T) {
 	subb := Select("id").From("table_b").Where(Eq{"b": "a"})
 	b := Select("a, b").From("table_a").Where(
