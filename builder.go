@@ -278,7 +278,7 @@ func (b *Builder) Insert(eq ...interface{}) *Builder {
 		sort.Slice(b.insertVals, func(i, j int) bool {
 			return b.insertCols[i] < b.insertCols[j]
 		})
-		sort.Sort(sort.StringSlice(b.insertCols))
+		sort.Strings(b.insertCols)
 	}
 	b.optype = insertType
 	return b
