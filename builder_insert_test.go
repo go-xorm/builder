@@ -29,7 +29,11 @@ func TestBuilderInsert(t *testing.T) {
 }
 
 func TestBuidlerInsert_Select(t *testing.T) {
-	sql, err := Insert(Select().From("table2")).Into("table1").ToBoundSQL()
+	sql, err := Insert().Into("table1").Select().From("table2").ToBoundSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "INSERT INTO table1 SELECT * FROM table2", sql)
+
+	sql, err = Insert("a, b").Into("table1").Select("b, c").From("table2").ToBoundSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "INSERT INTO table1 (a, b) SELECT b, c FROM table2", sql)
 }
