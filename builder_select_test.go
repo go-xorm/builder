@@ -15,6 +15,7 @@ func TestBuilder_Select(t *testing.T) {
 	sql, args, err := Select("c, d").From("table1").ToSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "SELECT c, d FROM table1", sql)
+	assert.EqualValues(t, []interface{}(nil), args)
 
 	sql, args, err = Select("c, d").From("table1").Where(Eq{"a": 1}).ToSQL()
 	assert.NoError(t, err)
@@ -104,24 +105,24 @@ func TestBuilder_From(t *testing.T) {
 	assert.EqualValues(t, []interface{}{1, 2, 1}, args)
 
 	// from union without alias
-	sql, args, err = Select("sub.id").From(
+	_, _, err = Select("sub.id").From(
 		Select("id").From("table1").Where(Eq{"a": 1}).Union(
 			"all", Select("id").From("table1").Where(Eq{"a": 2}))).Where(Eq{"b": 1}).ToSQL()
 	assert.Error(t, err)
 	assert.EqualValues(t, ErrUnnamedDerivedTable, err)
 
 	// will raise error
-	sql, args, err = Select("c").From(Insert(Eq{"a": 1}).From("table1"), "table1").ToSQL()
+	_, _, err = Select("c").From(Insert(Eq{"a": 1}).From("table1"), "table1").ToSQL()
 	assert.Error(t, err)
 	assert.EqualValues(t, ErrUnexpectedSubQuery, err)
 
 	// will raise error
-	sql, args, err = Select("c").From(Delete(Eq{"a": 1}).From("table1"), "table1").ToSQL()
+	_, _, err = Select("c").From(Delete(Eq{"a": 1}).From("table1"), "table1").ToSQL()
 	assert.Error(t, err)
 	assert.EqualValues(t, ErrUnexpectedSubQuery, err)
 
 	// from a sub-query in different dialect
-	sql, args, err = MySQL().Select("sub.id").From(
+	_, _, err = MySQL().Select("sub.id").From(
 		Oracle().Select("id").From("table1").Where(Eq{"a": 1}), "sub").Where(Eq{"b": 1}).ToSQL()
 	assert.Error(t, err)
 	assert.EqualValues(t, ErrInconsistentDialect, err)

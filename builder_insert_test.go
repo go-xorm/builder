@@ -22,10 +22,12 @@ func TestBuilderInsert(t *testing.T) {
 	sql, err = Insert(Eq{"c": 1, "d": 2}).ToBoundSQL()
 	assert.Error(t, err)
 	assert.EqualValues(t, ErrNoTableName, err)
+	assert.EqualValues(t, "", sql)
 
 	sql, err = Insert(Eq{}).Into("table1").ToBoundSQL()
 	assert.Error(t, err)
 	assert.EqualValues(t, ErrNoColumnToInsert, err)
+	assert.EqualValues(t, "", sql)
 }
 
 func TestBuidlerInsert_Select(t *testing.T) {
