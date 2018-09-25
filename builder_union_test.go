@@ -68,7 +68,7 @@ func TestBuilder_Union(t *testing.T) {
 	// will be overwrote by INSERT op
 	sql, args, err = Select("*").From("t1").Where(Eq{"status": "1"}).
 		Union("all", Select("*").From("t2").Where(Eq{"status": "2"})).
-		Insert(Eq{"status": "1"}).From("t2").ToSQL()
+		Insert(Eq{"status": "1"}).Into("t2").ToSQL()
 	assert.NoError(t, err)
 	fmt.Println(sql, args)
 }
