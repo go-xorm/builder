@@ -13,6 +13,10 @@ Make sure you have installed Go 1.8+ and then:
 
 ```Go
 sql, args, err := builder.Insert(Eq{"c": 1, "d": 2}).Into("table1").ToSQL()
+
+sql, err := builder.Insert().Into("table1").Select().From("table2").ToBoundSQL()
+
+sql, err = builder.Insert("a, b").Into("table1").Select("b, c").From("table2").ToBoundSQL()
 ```
 
 # Select
