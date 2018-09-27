@@ -25,7 +25,6 @@ pipeline:
 
   test:
     image: golang:1.9
-    #group: testing
     pull: true
     commands:
       - go get -u github.com/golang/lint/golint
