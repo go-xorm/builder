@@ -10,10 +10,8 @@ clone:
 
 pipeline:
 
-  test:
+  test1:
     image: golang:1.8
-    group: testing
-    pull: true
     commands:
       - go get -u github.com/golang/lint/golint
       - go get -u github.com/stretchr/testify/assert
@@ -23,10 +21,8 @@ pipeline:
     when:
       event: [ push, tag, pull_request ]
 
-  test:
+  test2:
     image: golang:1.9
-    group: testing
-    pull: true
     commands:
       - go get -u github.com/golang/lint/golint
       - go get -u github.com/stretchr/testify/assert
@@ -36,10 +32,8 @@ pipeline:
     when:
       event: [ push, tag, pull_request ]
 
-  test:
+  test3:
     image: golang:1.10
-    group: testing
-    pull: true
     commands:
       - go get -u github.com/golang/lint/golint
       - go get -u github.com/stretchr/testify/assert
@@ -49,10 +43,8 @@ pipeline:
     when:
       event: [ push, tag, pull_request ]
 
-  test:
+  test4:
     image: golang:1.11
-    group: testing
-    pull: true
     commands:
       - go get -u github.com/golang/lint/golint
       - go get -u github.com/stretchr/testify/assert
