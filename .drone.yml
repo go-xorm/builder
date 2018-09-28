@@ -26,3 +26,12 @@ pipeline:
       - go test -v -race -coverprofile=coverage.txt -covermode=atomic
     when:
       event: [ push, tag, pull_request ]
+
+codecov:
+    image: robertstettner/drone-codecov
+    group: build
+    secrets: [ codecov_token ]
+    files:
+      - coverage.txt
+    when:
+      event: [ push, pull_request ]
