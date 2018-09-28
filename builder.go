@@ -7,6 +7,7 @@ package builder
 import (
 	sql2 "database/sql"
 	"fmt"
+	"sort"
 )
 
 type optype byte
@@ -49,14 +50,16 @@ type Builder struct {
 	optype
 	dialect    string
 	isNested   bool
-	tableName  string
+	into       string
+	from       string
 	subQuery   *Builder
 	cond       Cond
 	selects    []string
 	joins      []join
 	unions     []union
 	limitation *limit
-	inserts    Eq
+	insertCols []string
+	insertVals []interface{}
 	updates    []Eq
 	orderBy    string
 	groupBy    string
@@ -111,15 +114,15 @@ func (b *Builder) From(subject interface{}, alias ...string) *Builder {
 		b.subQuery = subject.(*Builder)
 
 		if len(alias) > 0 {
-			b.tableName = alias[0]
+			b.from = alias[0]
 		} else {
 			b.isNested = true
 		}
 	case string:
-		b.tableName = subject.(string)
+		b.from = subject.(string)
 
 		if len(alias) > 0 {
-			b.tableName = b.tableName + " " + alias[0]
+			b.from = b.from + " " + alias[0]
 		}
 	}
 
@@ -128,12 +131,15 @@ func (b *Builder) From(subject interface{}, alias ...string) *Builder {
 
 // TableName returns the table name
 func (b *Builder) TableName() string {
-	return b.tableName
+	if b.optype == insertType {
+		return b.into
+	}
+	return b.from
 }
 
 // Into sets insert table name
 func (b *Builder) Into(tableName string) *Builder {
-	b.tableName = tableName
+	b.into = tableName
 	return b
 }
 
@@ -221,7 +227,9 @@ func (b *Builder) FullJoin(joinTable string, joinCond interface{}) *Builder {
 // Select sets select SQL
 func (b *Builder) Select(cols ...string) *Builder {
 	b.selects = cols
-	b.optype = selectType
+	if b.optype == condType {
+		b.optype = selectType
+	}
 	return b
 }
 
@@ -238,8 +246,40 @@ func (b *Builder) Or(cond Cond) *Builder {
 }
 
 // Insert sets insert SQL
-func (b *Builder) Insert(eq Eq) *Builder {
-	b.inserts = eq
+func (b *Builder) Insert(eq ...interface{}) *Builder {
+	if len(eq) > 0 {
+		var paramType = -1
+		for _, e := range eq {
+			switch t := e.(type) {
+			case Eq:
+				if paramType == -1 {
+					paramType = 0
+				}
+				if paramType != 0 {
+					break
+				}
+				for k, v := range t {
+					b.insertCols = append(b.insertCols, k)
+					b.insertVals = append(b.insertVals, v)
+				}
+			case string:
+				if paramType == -1 {
+					paramType = 1
+				}
+				if paramType != 1 {
+					break
+				}
+				b.insertCols = append(b.insertCols, t)
+			}
+		}
+	}
+
+	if len(b.insertCols) == len(b.insertVals) {
+		sort.Slice(b.insertVals, func(i, j int) bool {
+			return b.insertCols[i] < b.insertCols[j]
+		})
+		sort.Strings(b.insertCols)
+	}
 	b.optype = insertType
 	return b
 }
