@@ -19,7 +19,6 @@ pipeline:
       - go get -u github.com/go-xorm/sqlfiddle
       - golint ./...
       - go test -v -race -coverprofile=coverage.txt -covermode=atomic
-      - bash <(curl -s https://codecov.io/bash)
     when:
       event: [ push, tag, pull_request ]
 
@@ -32,7 +31,6 @@ pipeline:
       - go get -u github.com/go-xorm/sqlfiddle
       - golint ./...
       - go test -v -race -coverprofile=coverage.txt -covermode=atomic
-      - bash <(curl -s https://codecov.io/bash)
     when:
       event: [ push, tag, pull_request ]
 
@@ -46,7 +44,6 @@ pipeline:
       - go get -u github.com/go-xorm/sqlfiddle
       - golint ./...
       - go test -v -race -coverprofile=coverage.txt -covermode=atomic
-      - bash <(curl -s https://codecov.io/bash)
     when:
       event: [ push, tag, pull_request ]
 
@@ -60,6 +57,5 @@ pipeline:
       - go get -u github.com/go-xorm/sqlfiddle
       - golint ./...
       - go test -v -race -coverprofile=coverage.txt -covermode=atomic
-      - bash <(curl -s https://codecov.io/bash)
     when:
       event: [ push, tag, pull_request ]
