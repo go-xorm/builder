@@ -8,43 +8,16 @@ clone:
     depth: 50
     tags: true
 
+matrix:
+  GO_VERSION:
+    - 1.8
+    - 1.9
+    - 1.10
+    - 1.11
+
 pipeline:
-
-  test1:
-    image: golang:1.8
-    commands:
-      - go get -u github.com/golang/lint/golint
-      - go get -u github.com/stretchr/testify/assert
-      - go get -u github.com/go-xorm/sqlfiddle
-      - golint ./...
-      - go test -v -race -coverprofile=coverage.txt -covermode=atomic
-    when:
-      event: [ push, tag, pull_request ]
-
-  test2:
-    image: golang:1.9
-    commands:
-      - go get -u github.com/golang/lint/golint
-      - go get -u github.com/stretchr/testify/assert
-      - go get -u github.com/go-xorm/sqlfiddle
-      - golint ./...
-      - go test -v -race -coverprofile=coverage.txt -covermode=atomic
-    when:
-      event: [ push, tag, pull_request ]
-
-  test3:
-    image: golang:1.10
-    commands:
-      - go get -u github.com/golang/lint/golint
-      - go get -u github.com/stretchr/testify/assert
-      - go get -u github.com/go-xorm/sqlfiddle
-      - golint ./...
-      - go test -v -race -coverprofile=coverage.txt -covermode=atomic
-    when:
-      event: [ push, tag, pull_request ]
-
-  test4:
-    image: golang:1.11
+  test:
+    image: golang:${GO_VERSION}
     commands:
       - go get -u github.com/golang/lint/golint
       - go get -u github.com/stretchr/testify/assert
