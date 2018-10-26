@@ -15,6 +15,10 @@ func TestBuilderInsert(t *testing.T) {
 	assert.NoError(t, err)
 	assert.EqualValues(t, "INSERT INTO table1 (c,d) Values (1,2)", sql)
 
+	sql, err = Insert(Eq{"e": 3}, Eq{"c": 1}, Eq{"d": 2}).Into("table1").ToBoundSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "INSERT INTO table1 (c,d,e) Values (1,2,3)", sql)
+
 	sql, err = Insert(Eq{"c": 1, "d": Expr("SELECT b FROM t WHERE d=? LIMIT 1", 2)}).Into("table1").ToBoundSQL()
 	assert.NoError(t, err)
 	assert.EqualValues(t, "INSERT INTO table1 (c,d) Values (1,(SELECT b FROM t WHERE d=2 LIMIT 1))", sql)
