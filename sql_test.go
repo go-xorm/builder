@@ -207,3 +207,9 @@ func TestToSQLInDifferentDialects(t *testing.T) {
 	assert.EqualValues(t, "SELECT * FROM table1 WHERE a=? AND b<>?", sql)
 	assert.EqualValues(t, []interface{}{"1", "100"}, args)
 }
+
+func TestToSQLInjectionHarmlessDisposal(t *testing.T) {
+	sql, err := MySQL().Select("*").From("table1").Where(Cond(Eq{"name": "cat';truncate table table1;"})).ToBoundSQL()
+	assert.NoError(t, err)
+	assert.EqualValues(t, "SELECT * FROM table1 WHERE name='cat'';truncate table table1;'", sql)
+}
