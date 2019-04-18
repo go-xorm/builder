@@ -209,7 +209,7 @@ func TestToSQLInDifferentDialects(t *testing.T) {
 }
 
 func TestToSQLInjectionHarmlessDisposal(t *testing.T) {
-	sql, err := MySQL().Select("*").From("table1").Where(Cond(Eq{"name": "cat';truncate table1;"})).ToBoundSQL()
+	sql, err := MySQL().Select("*").From("table1").Where(Cond(Eq{"name": "cat';truncate table table1;"})).ToBoundSQL()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "SELECT * FROM table1 WHERE name='cat\\';truncate table1;'", sql)
+	assert.EqualValues(t, "SELECT * FROM table1 WHERE name='cat'';truncate table table1;'", sql)
 }
