@@ -38,10 +38,7 @@ func (iflike Iflike) Or(conds ...Cond) Cond {
 // IsValid tests if this condition is valid
 func (iflike Iflike) IsValid() bool {
 	if len(iflike[0]) > 0 && len(iflike[1]) > 0 {
-		if iflike[1] == iflike[2] {
-			return false
-		}
-		return true
+		return iflike[1] == iflike[2]
 	}
 	return false
 }
