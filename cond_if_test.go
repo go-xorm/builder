@@ -11,18 +11,28 @@ import (
 )
 
 func TestCond_If(t *testing.T) {
-	var cond = If(1 > 0, Eq{"a": 1}, Eq{"b": 1})
-	sql, err := ToBoundSQL(cond)
+	cond1 := If(1 > 0, Eq{"a": 1}, Eq{"b": 1})
+	sql, err := ToBoundSQL(cond1)
 	assert.NoError(t, err)
 	assert.EqualValues(t, "a=1", sql)
 
-	cond = If(1 < 0, Eq{"a": 1}, Eq{"b": 1})
-	sql, err = ToBoundSQL(cond)
+	cond2 := If(1 < 0, Eq{"a": 1}, Eq{"b": 1})
+	sql, err = ToBoundSQL(cond2)
 	assert.NoError(t, err)
 	assert.EqualValues(t, "b=1", sql)
 
-	cond = If(1 > 0, cond, Eq{"c": 1})
-	sql, err = ToBoundSQL(cond)
+	cond3 := If(1 > 0, cond2, Eq{"c": 1})
+	sql, err = ToBoundSQL(cond3)
 	assert.NoError(t, err)
 	assert.EqualValues(t, "b=1", sql)
+
+	cond4 := If(2 < 0, Eq{"d": "a"})
+	sql, err = ToBoundSQL(cond4)
+	assert.NoError(t, err)
+	assert.EqualValues(t, "", sql)
+
+	cond5 := And(cond1, cond2, cond3, cond4)
+	sql, err = ToBoundSQL(cond5)
+	assert.NoError(t, err)
+	assert.EqualValues(t, "a=1 AND b=1 AND b=1", sql)
 }

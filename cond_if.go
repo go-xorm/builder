@@ -42,5 +42,8 @@ func (condIf condIf) Or(conds ...Cond) Cond {
 }
 
 func (condIf condIf) IsValid() bool {
-	return condIf.condTrue != nil
+	if condIf.condition {
+		return condIf.condTrue != nil
+	}
+	return condIf.condFalse != nil
 }
