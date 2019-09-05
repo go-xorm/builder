@@ -21,7 +21,7 @@ func (b *Builder) selectWriteTo(w Writer) error {
 
 	// perform limit before writing to writer when b.dialect between ORACLE and MSSQL
 	// this avoid a duplicate writing problem in simple limit query
-	if b.limitation != nil && (b.dialect == ORACLE || b.dialect == MSSQL) {
+	if b.limitation != nil && b.dialect == ORACLE {
 		return b.limitWriteTo(w)
 	}
 
@@ -115,6 +115,17 @@ func (b *Builder) selectWriteTo(w Writer) error {
 		if _, err := fmt.Fprint(w, " ORDER BY ", b.orderBy); err != nil {
 			return err
 		}
+
+		if b.limitation != nil && b.dialect == MSSQL {
+			if err := b.limitWriteTo(w); err != nil {
+				return err
+			}
+		}
+	}
+
+	// limit can only appear after an order by clause
+	if b.limitation != nil && b.dialect == MSSQL {
+		return ErrInvalidLimitation
 	}
 
 	if b.limitation != nil {

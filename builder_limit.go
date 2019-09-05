@@ -67,30 +67,7 @@ func (b *Builder) limitWriteTo(w Writer) error {
 				fmt.Fprintf(ow, " LIMIT %v OFFSET %v", limit.limitN, limit.offset)
 			}
 		case MSSQL:
-			if len(b.selects) == 0 {
-				b.selects = append(b.selects, "*")
-			}
-
-			var final *Builder
-			selects := b.selects
-			b.selects = append(append([]string{fmt.Sprintf("TOP %d %v", limit.limitN+limit.offset, b.selects[0])},
-				b.selects[1:]...), "ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS RN")
-
-			var wb *Builder
-			if b.optype == unionType {
-				wb = Dialect(b.dialect).Select("*", "ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS RN").
-					From(b, "at")
-			} else {
-				wb = b
-			}
-
-			if limit.offset == 0 {
-				final = Dialect(b.dialect).Select(selects...).From(wb, "at")
-			} else {
-				final = Dialect(b.dialect).Select(selects...).From(wb, "at").Where(Gt{"at.RN": limit.offset})
-			}
-
-			return final.WriteTo(ow)
+			fmt.Fprintf(ow, " OFFSET %v ROWS FETCH NEXT %v ROWS ONLY", limit.offset, limit.limitN)
 		default:
 			return ErrNotSupportType
 		}
